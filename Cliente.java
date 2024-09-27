@@ -23,7 +23,7 @@ public class Cliente {
 
             // Lee la respuesta del usuario y escoge opcion
             respuesta = scanner.nextLine().toUpperCase();
-
+/**/
             switch(respuesta){
                 case "A":
                     System.out.println("Registrando documento...");
