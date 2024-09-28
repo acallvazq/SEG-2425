@@ -3,6 +3,11 @@ import java.util.Scanner;
 public class Cliente {
     
     //Atributos
+    private final String keyStore = "keyStore";
+    private final String trustStore = "trustStore";
+    private final String keyStorePathCliente = "./keyStoreCliente";
+    private final String trustStorePathCliente = "./trustStoreCliente";
+    private final String contrasinal = "abc123.";
     
     //Clases
     public static void main (String[] args){
@@ -15,23 +20,23 @@ public class Cliente {
                 "╔════════════════════════════════════╗\n" +
                 "║        GESTOR DE DOCUMENTOS        ║\n" +
                 "╚════════════════════════════════════╝\n" +
-                "  A) 📝 Registrar un documento       \n" +
-                "  B) 📖 Recuperar un documento       \n" +
-                "  S) 🚪 Salir                        \n");
+                "  1) 📝 Registrar un documento       \n" +
+                "  2) 📖 Recuperar un documento       \n" +
+                "  X) 🚪 Salir                        \n");
 
             System.out.print("Seleccione una opcion: ");
 
             // Lee la respuesta del usuario y escoge opcion
             respuesta = scanner.nextLine().toUpperCase();
-/**/
+
             switch(respuesta){
-                case "A":
-                    System.out.println("Registrando documento...");
+                case "1":
+                    registrarDocumento();
                     break;
-                case "B":
-                    System.out.println("Recuperando el documento...");
+                case "2":
+                    recuperarDocumento();   
                     break;
-                case "S":
+                case "X":
                     System.out.println("Saliendo del sistema...");
                     salir = 0;
                     break;
@@ -43,6 +48,13 @@ public class Cliente {
     }
 
     //Metodos
+    private static void registrarDocumento(){
+        System.out.println("Registrando documento...");
 
+    }
+
+    private static void recuperarDocumento(){
+        System.out.println("Recuperando el documento...");
+    }
 
 }
