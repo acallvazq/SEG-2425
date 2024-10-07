@@ -72,7 +72,7 @@ public class DescifradoSimetrico {
 
             int bytesleidos = fparametros_in.read(paramSerializados); 
 
-            System.out.println(bytesleidos + "-" + fparametros_in.available());
+            //System.out.println(bytesleidos + "-" + fparametros_in.available());
 
             params.init(paramSerializados);
 
