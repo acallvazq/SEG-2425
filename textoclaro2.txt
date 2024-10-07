@@ -1,0 +1,1 @@
+Este es el texto claro que será cifrado.
