@@ -10,14 +10,14 @@ public class CifradoSimetrico {
     
                 String provider         = "SunJCE";
                 
-                FileInputStream  ftextoclaro   = new FileInputStream ("./textoclaro.txt");
-                FileInputStream  fclave_in     = new FileInputStream ("./fclaveks.txt");
+                FileInputStream  ftextoclaro   = new FileInputStream ("./textosPrueba/textoclaro.txt");
+                FileInputStream  fclave_in     = new FileInputStream ("./textosPrueba/fclaveks.txt");
 
-                FileOutputStream ftextocifrado = new FileOutputStream("./textocifrado.txt");
-                FileOutputStream fparametros   = new FileOutputStream("./parametros.txt");
-                FileOutputStream fclave        = new FileOutputStream("./fclaveks.txt");
+                FileOutputStream ftextocifrado = new FileOutputStream("./textosPrueba/textocifrado.txt");
+                FileOutputStream fparametros   = new FileOutputStream("./textosPrueba/parametros.txt");
+                FileOutputStream fclave        = new FileOutputStream("./textosPrueba/fclaveks.txt");
 
-                BufferedWriter   fmedidas      = new BufferedWriter(new FileWriter("./medidasCifrado.txt"));
+                BufferedWriter   fmedidas      = new BufferedWriter(new FileWriter("./textosPrueba/medidasCifrado.txt"));
                 
                 byte   bloqueclaro[]    = new byte[2024];
                 byte   bloquecifrado[]  = new byte[2048];

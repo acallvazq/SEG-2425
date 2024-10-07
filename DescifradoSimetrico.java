@@ -14,30 +14,25 @@ public class DescifradoSimetrico {
         int longclave = 128;
         int longbloque;
 
-        FileInputStream ftextoclaro = new FileInputStream ("./textoclaro.txt");
-	    FileInputStream  fclave_in = new FileInputStream ("./fclaveks.txt");
+        FileInputStream ftextoclaro = new FileInputStream ("./textosPrueba/textoclaro.txt");
+	    FileInputStream  fclave_in = new FileInputStream ("./textosPrueba/fclaveks.txt");
 
-	    //FileOutputStream ftextocifrado = new FileOutputStream("./textocifrado.txt");
-	    //FileOutputStream fparametros = new FileOutputStream("./parametros.txt");
-	    //FileOutputStream fclave = new FileOutputStream("./fclaveks.txt");
-	    FileInputStream  ftextocifrado2 = new FileInputStream ("./textocifrado.txt");
-	    FileOutputStream ftextoclaro2 = new FileOutputStream("./textoclaro2.txt");
-	    FileInputStream  fparametros_in = new FileInputStream ("./parametros.txt");
+	    FileInputStream  ftextocifrado2 = new FileInputStream ("./textosPrueba/textocifrado.txt");
+	    FileOutputStream ftextoclaro2 = new FileOutputStream("./textosPrueba/textoclaro2.txt");
+	    FileInputStream  fparametros_in = new FileInputStream ("./textosPrueba/parametros.txt");
 
         byte bloquecifrado2[] = new byte[1024];
         byte bloqueclaro2[] = new byte[1048];
 
         /************************************************************
-			         Generar y almacenar la clave 
+			                     Leer la clave 
 	    ************************************************************/
-
-        ArrayList<Byte> skey_raw = new ArrayList<>();
-         
+        ArrayList<Byte> skey_raw = new ArrayList<>();      
         int byteLeido;
 
         while ((byteLeido = fclave_in.read()) != -1) {
-                // Convertir el int leído a Byte y añadirlo a la lista
-                skey_raw.add((byte)byteLeido);
+            // Convertir el int leído a Byte y añadirlo a la lista
+            skey_raw.add((byte)byteLeido);
         }
 
         byte[] skey_raw_leido = new byte[skey_raw.size()];
@@ -52,7 +47,6 @@ public class DescifradoSimetrico {
         //*****************************************************************************
         //					DESCIFRAR
         //*****************************************************************************
-
         System.out.println("*************** INICIO DESCIFRADO *****************" );
 
         Cipher descifrador = Cipher.getInstance(algoritmo + transformacion, provider);
@@ -94,9 +88,8 @@ public class DescifradoSimetrico {
         
 
         while ((longbloque = ftextocifrado2.read(bloquecifrado2)) > 0) {
-            
-              bloqueclaro2 = descifrador.update(bloquecifrado2,0,longbloque);
-              ftextoclaro2.write(bloqueclaro2);
+            bloqueclaro2 = descifrador.update(bloquecifrado2,0,longbloque);
+            ftextoclaro2.write(bloqueclaro2);
         }
 
         bloqueclaro2 = descifrador.doFinal();
