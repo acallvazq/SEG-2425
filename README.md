@@ -6,9 +6,20 @@ Los objetivos principales son familiarizarse con librerías criptográficas mode
 ## Ejecución ⚙️
 
 ### Cliente sin autenticar
+```
 java ClassFileServer 2080 /home/user/SEG-2425/textosPrueba TLS
+```
+```
 java ClienteNoAutenticado 127.0.0.1 2080 textoclaro.txt
+```
 
 ### Cliente Autenticado
+```
 java ClassFileServer 2080 /home/user/SEG-2425/textosPrueba TLS true
+```
+```
 java ClienteAutenticado 127.0.0.1 2080 textoclaro.txt 
+```
+
+
+
