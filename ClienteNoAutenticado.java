@@ -15,6 +15,8 @@ public class ClienteNoAutenticado {
 	
     public static void main(String[] args) throws Exception {
         try {		
+            //Directorio de trabajo
+		    raiz = System.getProperty("user.dir");
 
             definirKeyStores();
 
@@ -87,7 +89,7 @@ public class ClienteNoAutenticado {
 		
 		// Almacen de confianza
 	  
-		System.setProperty("javax.net.ssl.trustStore",          raiz + "trustStoreClient1.jce");
+		System.setProperty("javax.net.ssl.trustStore",          raiz + "/keyStoreCliente/trustStoreClient1.jce");
 		System.setProperty("javax.net.ssl.trustStoreType",     "JCEKS");
 		System.setProperty("javax.net.ssl.trustStorePassword", "criptonika");
 
