@@ -42,8 +42,8 @@ public class ClienteAutenticado {
 		String host = null;
 		int    port = 9001;
 		String path = null;
-		char[] contraseñaAlmacen = "criptonika".toCharArray();
-		char[] contraseñaEntrada = "criptonika".toCharArray();
+		char[] contrasinalAlmacen = "criptonika".toCharArray();
+		char[] contrasinalEntrada = "criptonika".toCharArray();
 		
 		String[] cipherSuites = null;
 
@@ -97,8 +97,8 @@ public class ClienteAutenticado {
 				//
 				kmf = KeyManagerFactory.getInstance("SunX509");
 				ks = KeyStore.getInstance("JCEKS");
-				ks.load(new FileInputStream(ficheroKeyStore), contraseñaAlmacen);
-				kmf.init(ks, contraseñaAlmacen);
+				ks.load(new FileInputStream(ficheroKeyStore), contrasinalAlmacen);
+				kmf.init(ks, contrasinalAlmacen);
 
 				/* Se inicializa el contexto pasandole:
 				 * 

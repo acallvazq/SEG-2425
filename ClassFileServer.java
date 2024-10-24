@@ -151,15 +151,15 @@ public class ClassFileServer extends ClassServer {
     			SSLContext 			ctx;
 			KeyManagerFactory 		kmf;
 			KeyStore 			ks;
-			char[] 				contraseña = "criptonika".toCharArray();
+			char[] 				contrasinal = "criptonika".toCharArray();
 	
 			ctx = SSLContext.getInstance("TLS");
 			kmf = KeyManagerFactory.getInstance("SunX509");
 
 			ks  = KeyStore.getInstance("JCEKS");
-			ks.load(new FileInputStream(raiz + "/keyStoreServidor/keyStoreServer.jce"), contraseña);
+			ks.load(new FileInputStream(raiz + "/keyStoreServidor/keyStoreServer.jce"), contrasinal);
 
-			kmf.init(ks, contraseña);
+			kmf.init(ks, contrasinal);
 			
 			ctx.init(kmf.getKeyManagers(), null, null);
 	
