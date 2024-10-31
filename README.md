@@ -25,5 +25,22 @@ java ClienteAutenticado 127.0.0.1 2080 textoclaro.txt
 openssl s_client -connect 127.0.0.1:2080 
 ```
 
+### Cliente Autenticado con OCSP
+
+```
+openssl ocsp -port 9080 -index db/index -rsigner root-ocsp.crt -rkey private/root-ocsp.key -CA root-ca.crt -text
+```
+
+```
+java ClassFileServer 8080 .\textosPrueba\ TLS true
+```
+
+(Del cliente hay que cambiar la IP del OCSP en Java a la que corresponda)
+```
+java SSLSocketClientWithClientAuthOCSP 127.0.0.1 8080 textoclaro.txt
+```
+
+
+
 
 
