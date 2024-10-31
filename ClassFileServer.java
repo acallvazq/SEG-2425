@@ -196,7 +196,7 @@ public class ClassFileServer extends ClassServer {
 	
 	    // Almacen de confianza
 	    
-	    System.setProperty("javax.net.ssl.trustStore",         raiz + "/keyStoreServidor/keyStoreServer.jce");
+	    System.setProperty("javax.net.ssl.trustStore",         raiz + "/keyStoreServidor/trustStoreServer.jce");
 	    System.setProperty("javax.net.ssl.trustStoreType",     "JCEKS");
 	    System.setProperty("javax.net.ssl.trustStorePassword", "criptonika");
 	}
