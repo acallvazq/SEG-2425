@@ -40,6 +40,23 @@ java ClassFileServer 8080 .\textosPrueba\ TLS true
 java SSLSocketClientWithClientAuthOCSP 127.0.0.1 8080 textoclaro.txt
 ```
 
+### Servidor Autenticado con OCSP (OCSP Stapling)
+
+```
+openssl ocsp -port 9080 -index db/index -rsigner root-ocsp.crt -rkey private/root-ocsp.key -CA root-ca.crt -text
+```
+
+```
+java ClassFileServer_con_OCSPStapling 7080 /home/alba/24-25/SEG/SEG-2425/ TLS true
+```
+
+```
+java Cliente_autenticado_con_OCSPStapling 192.168.1.137 7080 pikachu.jpg
+```
+
+```
+openssl s_client -connect 192.168.1.137:7080 -status
+```
 
 
 
