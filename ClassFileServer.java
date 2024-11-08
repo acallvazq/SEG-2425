@@ -157,7 +157,7 @@ public class ClassFileServer extends ClassServer {
 			kmf = KeyManagerFactory.getInstance("SunX509");
 
 			ks  = KeyStore.getInstance("JCEKS");
-			ks.load(new FileInputStream(raiz + "/keyStoreServidor/keyStoreServer.jce"), contrasinal);
+			ks.load(new FileInputStream(raiz + "/keyStoreServidor/keyStoreServerSubCA.jce"), contrasinal);
 
 			kmf.init(ks, contrasinal);
 			
@@ -190,7 +190,7 @@ public class ClassFileServer extends ClassServer {
 	{
 	    // Almacen de claves
 		
-	    System.setProperty("javax.net.ssl.keyStore",           raiz + "/keyStoreServidor/keyStoreServer.jce");
+	    System.setProperty("javax.net.ssl.keyStore",           raiz + "/keyStoreServidor/keyStoreServerSubCA.jce");
 	    System.setProperty("javax.net.ssl.keyStoreType",     "JCEKS");
 	    System.setProperty("javax.net.ssl.keyStorePassword", "criptonika");
 	
