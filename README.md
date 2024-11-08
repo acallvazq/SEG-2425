@@ -58,6 +58,9 @@ java Cliente_autenticado_con_OCSPStapling 192.168.1.137 7080 pikachu.jpg
 openssl s_client -connect 192.168.1.137:7080 -status
 ```
 
-
+Si utilizamos s_client entonces
+```
+java ClassFileServer_con_OCSPStapling 7080 /home/alba/24-25/SEG/SEG-2425/ TLS
+```
 
 
