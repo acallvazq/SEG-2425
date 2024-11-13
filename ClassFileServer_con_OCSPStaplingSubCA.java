@@ -293,7 +293,7 @@ public class ClassFileServer_con_OCSPStaplingSubCA extends ClassServer {
 
 			kmf = KeyManagerFactory.getInstance("SunX509");
 			ks = KeyStore.getInstance("JCEKS");	
-			ks.load(new FileInputStream(raizMios + "keyStoreServerSubCA.jce"), passphrase);
+			ks.load(new FileInputStream(raizMios + "keyStoreServerSubCA2.jce"), passphrase);
 			kmf.init(ks, passphrase);
 		
 			// Crear el contexto
@@ -323,7 +323,7 @@ public class ClassFileServer_con_OCSPStaplingSubCA extends ClassServer {
 
 		// Almacen de claves
 		
-		System.setProperty("javax.net.ssl.keyStore",         raizMios + "keyStoreServerSubCA.jce");
+		System.setProperty("javax.net.ssl.keyStore",         raizMios + "keyStoreServerSubCA2.jce");
 		System.setProperty("javax.net.ssl.keyStoreType",     "JCEKS");
 		System.setProperty("javax.net.ssl.keyStorePassword", "criptonika");
 
