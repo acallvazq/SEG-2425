@@ -50,7 +50,7 @@ public class ClienteAutenticado {
         //Directorio de trabajo
 		raizAlmacenes = System.getProperty("user.dir");
         ficheroKeyStore = raizAlmacenes + "/keyStoreCliente/keyStoreClient1.jce";
-        ficheroTrustStore = raizAlmacenes + "/keyStoreCliente/trustStoreClient1.jce";
+        ficheroTrustStore = raizAlmacenes + "/keyStoreCliente/trustStoreClientSubCA.jce";
         
         System.out.println(ficheroKeyStore);
         System.out.println(ficheroTrustStore);

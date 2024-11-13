@@ -62,5 +62,16 @@ Si utilizamos s_client entonces
 ```
 java ClassFileServer_con_OCSPStapling 7080 /home/alba/24-25/SEG/SEG-2425/ TLS
 ```
+### Servidor Autenticado con OCSP (OCSP Stapling)
 
+```
+java ClassFileServerSubCA 7080 /home/alba/24-25/SEG/SEG-2425/ TLS true
+```
 
+```
+java Cliente_autenticado_con_OCSPStapling 192.168.1.137 7080 pikachu.jpg
+```
+
+```
+openssl ocsp -port 9080 -index db/index -rsigner sub-ocsp.crt -rkey private/sub-ocsp.key -CA sub-ca-server.crt -text -validity_period 300
+```
