@@ -62,7 +62,7 @@ Si utilizamos s_client entonces
 ```
 java ClassFileServer_con_OCSPStapling 7080 /home/alba/24-25/SEG/SEG-2425/ TLS
 ```
-### Servidor Autenticado con OCSP (OCSP Stapling)
+### Servidor Autenticado con OCSP y Servidor Sub-CA
 
 ```
 java ClassFileServerSubCA 7080 /home/alba/24-25/SEG/SEG-2425 TLS true
