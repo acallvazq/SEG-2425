@@ -55,7 +55,7 @@ public class VerificacionAsimetricaJCE {
             keyFactory = KeyFactory.getInstance("RSA");
             PrivateKey privateKey = keyFactory.generatePrivate(spec2);
 
-    		System.out.println("*** FIRMA    *** ");*/
+    		System.out.println("*** FIRMA    *** ");
             File archivo = new File("firma.txt");
 		    try (FileInputStream fis = new FileInputStream(archivo)) {
                 // Obtener el tamaño del archivo
