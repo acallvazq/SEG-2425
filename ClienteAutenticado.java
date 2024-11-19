@@ -21,6 +21,7 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 
+ 
 /****************************************************************************
  * This example shows how to set up a key manager to do client authentication if
  * required by server.

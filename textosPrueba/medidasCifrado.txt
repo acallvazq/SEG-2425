@@ -1,1 +1,1 @@
-T.iteracion1=1409557.0nanoseg
+T.iteracion1=1081478.0nanoseg

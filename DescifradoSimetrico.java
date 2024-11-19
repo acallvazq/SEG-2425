@@ -15,10 +15,10 @@ public class DescifradoSimetrico {
         int longbloque;
 
         FileInputStream ftextoclaro = new FileInputStream ("./textosPrueba/textoclaro.txt");
-	    FileInputStream  fclave_in = new FileInputStream ("./textosPrueba/fclaveks.txt");
+        FileInputStream  fclave_in = new FileInputStream ("./textosPrueba/fclaveks.txt");
 
-	    FileInputStream  ftextocifrado2 = new FileInputStream ("./textosPrueba/textocifrado.txt");
-	    FileOutputStream ftextoclaro2 = new FileOutputStream("./textosPrueba/textoclaro2.txt");
+        FileInputStream  ftextocifrado2 = new FileInputStream ("./textosPrueba/textocifrado.txt");
+        FileOutputStream ftextoclaro2 = new FileOutputStream("./textosPrueba/textoclaro2.txt");
 	    FileInputStream  fparametros_in = new FileInputStream ("./textosPrueba/parametros.txt");
 
         byte bloquecifrado2[] = new byte[1024];

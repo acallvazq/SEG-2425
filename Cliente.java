@@ -1,25 +1,46 @@
 import java.util.Scanner;
-import java.net.ssl.*;
+//import java.net.ssl.*;
 
 
 public class Cliente {
-    //Atributos
-
-    //Constantes
-    private final String raiz = "./";
-    private final String keyStore = "keyStore";
-    private final String trustStore = "trustStore";
-    private final String keyStorePathCliente = "./keyStoreCliente";
-    private final String trustStorePathCliente = "./trustStoreCliente";
-    private final String contrasinal = "abc123.";
+    //Atributos y constantes
+    private static String raiz;
+    private static String ficheroKeyStore;
+    private static String ficheroTrustStore;
+    private static String contrasinal = "criptonika";
     
     //Clases
     public static void main (String[] args){
-        String respuesta;
-        int salir = 1;
-        Scanner scanner = new Scanner(System.in);
+		String host = null;
+		int port = 9001;
+        
+        // Comprueba los argumentos
+		if (args.length < 2 || args.length > 3) {
+			System.out.println("USAGE: java Cliente " + "host port");
+			System.exit(-1);
+		}
+		host = args[0];
+		port = Integer.parseInt(args[1]);
 
-        do {
+		//Directorio de trabajo
+		raiz = System.getProperty("user.dir");
+		ficheroKeyStore = raiz + "/keyStoreCliente/keyStoreClient1.jce";
+        ficheroTrustStore = raiz + "/keyStoreCliente/trustStoreClient.jce";
+
+		definirKeyStores();
+
+		menu();
+      
+
+    }
+
+    //Metodos
+	private static void menu(){
+		String respuesta;
+        Scanner scanner = new Scanner(System.in);
+		int salir = 1;
+
+		do {
             System.out.println("\n" + 
                 "╔════════════════════════════════════╗\n" +
                 "║        GESTOR DE DOCUMENTOS        ║\n" +
@@ -38,7 +59,7 @@ public class Cliente {
                     registrarDocumento();
                     break;
                 case "2":
-                    recuperarDocumento();   
+                  //  recuperarDocumento();   
                     break;
                 case "X":
                     System.out.println("Saliendo del sistema...");
@@ -47,26 +68,56 @@ public class Cliente {
             }
 
         }while(salir == 1);
-        
 
-    }
+	}
 
-    //Metodos
+	/******************************************************
+	 *              Registrar un Documento
+	 *****************************************************/
 
-    /*
-        Registro de documentos
-     */
     private static void registrarDocumento(){
-        //Iniciar conexion SSL
-        iniciarConexionSSL();
+		solicitarDatos();
         System.out.println("Registrando documento...");
 
     }
+
+    public static void solicitarDatos(){
+		String pathFile = preguntaUsuario("Introduce el directorio del archivo que deseas enviar: ");  // /home/alba/24-25/SEG/SEG-2425/textosPrueba/textoclaro.txt
+		
+		return;
+	}
+
+	private static String preguntaUsuario(String mensaje){
+        String respuesta;
+		Scanner scanner = new Scanner(System.in);
+
+		System.out.print(mensaje);
+        respuesta = scanner.nextLine();
+
+		return respuesta;
+    }
+
+	/******************************************************
+	 * definirKeyStores()
+	 *****************************************************/
+    
+	private static void definirKeyStores() {
+        // Almacen de credenciales
+        System.setProperty("javax.net.ssl.keyStore", ficheroKeyStore);
+        System.setProperty("javax.net.ssl.keyStoreType", "JCEKS");
+        System.setProperty("javax.net.ssl.keyStorePassword", contrasinal);
+
+        // Almacen de confianza
+        System.setProperty("javax.net.ssl.trustStore", ficheroTrustStore);
+        System.setProperty("javax.net.ssl.trustStoreType", "JCEKS");
+        System.setProperty("javax.net.ssl.trustStorePassword", contrasinal);
+    }
+
     /*
     ------------------------     PENDIENTE DE REVISION     ------------------------
     
      */
-
+/*
     private SSLSocket iniciarConexionSSL(){
         SSLSocket socket;
         definirKeyStores();
@@ -91,12 +142,12 @@ public class Cliente {
 
 				// Asignamos un socket al contexto.
 
-				factory = ctx.getSocketFactory();
+				factory = ctx.getSocketFactory();*/
 
 				/*********************************************************************
 				 * Suites del contexto
 				 *********************************************************************/
-				System.out.println("******** CypherSuites Disponibles **********");
+	/*			System.out.println("******** CypherSuites Disponibles **********");
 				cipherSuites = factory.getSupportedCipherSuites();
 				for (int i = 0; i < cipherSuites.length; i++)
 					System.out.println(cipherSuites[i]);
@@ -145,10 +196,10 @@ public class Cliente {
 			out.flush();
 
 			if (out.checkError())
-				System.out.println("SSLSocketClient: java.io.PrintWriter error");
+				System.out.println("SSLSocketClient: java.io.PrintWriter error");*/
 
 			/* Leer respuesta */
-			BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+		/*	BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
 			String inputLine;
 
@@ -182,6 +233,6 @@ public class Cliente {
 		System.setProperty("javax.net.ssl.trustStoreType", "JCEKS");
 		System.setProperty("javax.net.ssl.trustStorePassword", contrasinal);
 
-	}
+	}*/
 
 }
