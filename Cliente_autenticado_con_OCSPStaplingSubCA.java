@@ -60,7 +60,7 @@ import java.util.EnumSet;
  * The application can be modified to connect to a server outside
  * the firewall by following SSLSocketClientWithTunneling.java.
  */
-public class Cliente_autenticado_con_OCSPStapling {
+public class Cliente_autenticado_con_OCSPStaplingSubCA {
 
 
 	private static String 	raizMios  = "./keyStoreCliente/";
@@ -152,7 +152,7 @@ public class Cliente_autenticado_con_OCSPStapling {
 			
 			kmf = KeyManagerFactory.getInstance("SunX509");
 			ks = KeyStore.getInstance("JCEKS");
-			ks.load(new FileInputStream(raizMios + "keyStoreClient1.jce"), passphrase);
+			ks.load(new FileInputStream(raizMios + "keyStoreClientSubCA.jce"), passphrase);
 			kmf.init(ks, passphrase);
 			
 			// Crear el contexto
@@ -320,7 +320,7 @@ public class Cliente_autenticado_con_OCSPStapling {
 
 		// Almacen de claves
 		
-		System.setProperty("javax.net.ssl.keyStore",            raizMios + "keyStoreClient1.jce");
+		System.setProperty("javax.net.ssl.keyStore",            raizMios + "keyStoreClientSubCA.jce");
 		System.setProperty("javax.net.ssl.keyStoreType",       "JCEKS");
 		System.setProperty("javax.net.ssl.keyStorePassword",   "criptonika");
 

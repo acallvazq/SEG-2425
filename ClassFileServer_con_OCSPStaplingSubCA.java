@@ -266,7 +266,7 @@ public class ClassFileServer_con_OCSPStaplingSubCA extends ClassServer {
 			CertPathBuilder cpb = CertPathBuilder.getInstance("PKIX");
 			PKIXRevocationChecker rc = (PKIXRevocationChecker) cpb.getRevocationChecker();
 			rc.setOptions(EnumSet.of(PKIXRevocationChecker.Option.NO_FALLBACK));
-			rc.setOcspResponder(new URI("http://192.168.1.137:9080"));  // Aqui poner la ip y puerto donde se haya lanzado el OCSP Responder
+			rc.setOcspResponder(new URI("http://192.168.1.138:9080"));  // Aqui poner la ip y puerto donde se haya lanzado el OCSP Responder
 
 
 			//   2. Crear el truststore 
@@ -360,7 +360,7 @@ public class ClassFileServer_con_OCSPStaplingSubCA extends ClassServer {
     
     	System.setProperty("jdk.tls.server.enableStatusRequestExtension", "true");
 	  	System.setProperty("jdk.tls.stapling.responderOverride","true");
-		System.setProperty("jdk.tls.stapling.responderURI", "http://192.168.1.137:9080");		
+		System.setProperty("jdk.tls.stapling.responderURI", "http://192.168.1.138:9080");		
 		System.setProperty("jdk.tls.stapling.ignoreExtensions", "true");
 	}
 

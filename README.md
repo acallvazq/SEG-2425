@@ -75,3 +75,17 @@ java Cliente_autenticado_con_OCSPStapling 192.168.1.137 7080 textosPrueba/textoc
 ```
 openssl ocsp -port 9080 -index db/index -rsigner sub-ocsp.crt -rkey private/sub-ocsp.key -CA sub-ca-server.crt -text -validity_period 300
 ```
+
+### Cliente Sub-CA Autenticado con OCSP y Servidor Sub-CA
+
+```
+java ClassFileServerSubCA 7080 /home/alba/24-25/SEG/SEG-2425 TLS true
+```
+
+```
+java Cliente_autenticado_con_OCSPStaplingSubCA 192.168.1.138 7080 textosPrueba/textoclaro.txt
+```
+
+```
+openssl ocsp -port 9080 -index db/index -rsigner sub-ocsp.crt -rkey private/sub-ocsp.key -CA sub-ca-server.crt -text -validity_period 300
+```
