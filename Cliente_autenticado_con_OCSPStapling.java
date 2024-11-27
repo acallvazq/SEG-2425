@@ -158,7 +158,7 @@ public class Cliente_autenticado_con_OCSPStapling {
 			// Crear el contexto
 			ctx = SSLContext.getInstance("TLS");		
 			ctx.init(kmf.getKeyManagers(),  
-					 tmf.getTrustManagers(), 
+					 null, //tmf.getTrustManagers(), 
 					 null);
 	
 			factory = ctx.getSocketFactory();

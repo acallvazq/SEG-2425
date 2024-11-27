@@ -27,7 +27,7 @@ public class Cliente {
 		//Directorio de trabajo
 		raiz = System.getProperty("user.dir");
 		ficheroKeyStore = raiz + "/keyStoreCliente/keyStoreClient1.jce";
-        ficheroTrustStore = raiz + "/keyStoreCliente/trustStoreClient.jce";
+        ficheroTrustStore = raiz + "/keyStoreCliente/trustStoreClient1.jce";
 
 		definirKeyStores();
 		//iniciarConexionTLS(host, port);
@@ -81,7 +81,7 @@ public class Cliente {
 		String pathFile = preguntaUsuario("Introduce el directorio del archivo que deseas enviar: ");  // /home/alba/24-25/SEG/SEG-2425/textosPrueba/textoclaro.txt
         
 		//Creación de socket
-        iniciarConexionTLS(host, port);
+        iniciarConexionTLS(host, port, pathFile);
 		
 		System.out.println("Registrando documento...");
     }
@@ -96,36 +96,10 @@ public class Cliente {
 		return respuesta;
     }
 
-
-	/******************************************************
-	 * definirKeyStores()
-	 *****************************************************/
-    
-	private static void definirKeyStores() {
-        // Almacen de credenciales
-		//System.out.println("keyStore:" + ficheroKeyStore);
-      //  System.setProperty("javax.net.ssl.keyStore", ficheroKeyStore);
-      //  System.setProperty("javax.net.ssl.keyStoreType", "JCEKS");
-      //  System.setProperty("javax.net.ssl.keyStorePassword", contrasinal);
-        
-        // Almacen de confianza
-		System.setProperty("javax.net.ssl.trustStore",          raiz + "/keyStoreCliente/trustStoreClient1.jce");
-		System.setProperty("javax.net.ssl.trustStoreType",     "JCEKS");
-		System.setProperty("javax.net.ssl.trustStorePassword", "criptonika");
-		//System.out.println("trustStore:" + ficheroTrustStore);
-        //System.setProperty("javax.net.ssl.trustStore", ficheroTrustStore);
-        //System.setProperty("javax.net.ssl.trustStoreType", "JCEKS");
-        //System.setProperty("javax.net.ssl.trustStorePassword", contrasinal);
-    }
-
 	/*******************************************************
 	 *              inicializar conexion TLS
 	 *******************************************************/
-
-
-
-	
-    private static void iniciarConexionTLS(String host, int port){
+    private static void iniciarConexionTLS(String host, int port, String pathFile){
 		try{
 			SSLSocketFactory factory = (SSLSocketFactory)SSLSocketFactory.getDefault();
 
@@ -139,7 +113,7 @@ public class Cliente {
 				
 			String[] cipherSuites = sf.getSupportedCipherSuites();
 
-			for (int i=0; i<cipherSuites.length; i++);//System.out.println (cipherSuites[i]);
+			for (int i=0; i<cipherSuites.length; i++); //System.out.println (cipherSuites[i]);
 
 			System.out.println ("Comienzo SSL Handshake");
 
@@ -152,11 +126,11 @@ public class Cliente {
 							new OutputStreamWriter(
 							socket.getOutputStream())));
 
-			//out.println("GET " + "/" + args[2]  + " "  + " HTTP/1.0");
+			out.println("GET " + "/" + pathFile  + " "  + " HTTP/1.0");
 			out.println();
 			out.flush();
 
-			//System.out.println("GET " + "/" + args[2]  + " " + "HTTP/1.0");
+			System.out.println("GET " + "/" + pathFile  + " " + "HTTP/1.0");
 			/*
 			* Make sure there were no surprises
 			*/
@@ -181,9 +155,24 @@ public class Cliente {
         }
 
     }
+
+	/******************************************************
+	 * definirKeyStores()
+	 *****************************************************/
     
+	private static void definirKeyStores() {
+        // Almacen de credenciales
+      //  System.setProperty("javax.net.ssl.keyStore", ficheroKeyStore);
+      //  System.setProperty("javax.net.ssl.keyStoreType", "JCEKS");
+      //  System.setProperty("javax.net.ssl.keyStorePassword", contrasinal);
 
+        // Almacen de confianza
+		System.setProperty("javax.net.ssl.trustStore", ficheroTrustStore);
+		System.setProperty("javax.net.ssl.trustStoreType",     "JCEKS");
+		System.setProperty("javax.net.ssl.trustStorePassword", contrasinal);
 
+    }
+ 
 }
 
 
