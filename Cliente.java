@@ -77,12 +77,18 @@ public class Cliente {
 	 *              Registrar un Documento
 	 *****************************************************/
 
+<<<<<<< HEAD
     private static void registrarDocumento(String host, int port){
 		String pathFile = preguntaUsuario("Introduce el directorio del archivo que deseas enviar: ");  // /home/alba/24-25/SEG/SEG-2425/textosPrueba/textoclaro.txt
         
 		//Creación de socket
         iniciarConexionTLS(host, port, pathFile);
 		
+=======
+    private static void registrarDocumento(){
+        iniciarConexionTLS("localhost",8090, 1);
+
+>>>>>>> d14de11 (Co-authored-by: PiterDev <PiterWeb@users.noreply.github.com> Commit Brutal clasificando para la practica)
 		System.out.println("Registrando documento...");
     }
 
@@ -90,6 +96,7 @@ public class Cliente {
         String respuesta;
 		Scanner scanner = new Scanner(System.in);
 
+<<<<<<< HEAD
 		System.out.print(mensaje);
         respuesta = scanner.nextLine();
 
@@ -100,16 +107,31 @@ public class Cliente {
 	 *              inicializar conexion TLS
 	 *******************************************************/
     private static void iniciarConexionTLS(String host, int port, String pathFile){
+=======
+    private static void iniciarConexionTLS(String host, int port, int idOperacion){
+>>>>>>> d14de11 (Co-authored-by: PiterDev <PiterWeb@users.noreply.github.com> Commit Brutal clasificando para la practica)
 		try{
-			SSLSocketFactory factory = (SSLSocketFactory)SSLSocketFactory.getDefault();
+			// SSLSocketFactory factory = (SSLSocketFactory)SSLSocketFactory.getDefault();
 
 			System.out.println ("Crear socket");
-			SSLSocket socket = (SSLSocket)factory.createSocket(host, port);
+			// SSLSocket socket = (SSLSocket)factory.createSocket(host, port);
 			
 			// Ver las suites SSL disponibles
 			System.out.println ("CypherSuites");
 			SSLContext context = SSLContext.getDefault();
 			SSLSocketFactory sf = context.getSocketFactory();
+			KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+			KeyStore ks = KeyStore.getInstance("JCEKS");
+
+			ks.load(new FileInputStream(keyStorePathCliente), contrasinal);
+			kmf.init(ks, contrasinal);
+				
+			ctx.init(kmf.getKeyManagers(), null, null);
+
+			// Asignamos un socket al contexto.
+
+			SSLSocketFactory factory = ctx.getSocketFactory();
+			SSLSocket socket = (SSLSocket) factory.createSocket(host, port);
 				
 			String[] cipherSuites = sf.getSupportedCipherSuites();
 
@@ -120,6 +142,19 @@ public class Cliente {
 			socket.startHandshake();
 				
 			System.out.println ("Fin SSL Handshake");
+
+			if (idOperacion == 1){
+				String pathFile = preguntaUsuario("Introduce el directorio del archivo que deseas enviar: ");
+
+				SSLSession session = socket.getSession();
+        		java.security.cert.Certificate[] localcerts = session.getLocalCertificates();
+
+				java.security.cert.Certificate localCert = localcerts[0];
+
+			}
+			else{
+				
+			}
 
 			PrintWriter out = new PrintWriter(
 							new BufferedWriter(

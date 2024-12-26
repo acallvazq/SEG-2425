@@ -1,3 +1,4 @@
+
 /*
  * @(#)SSLSocketClientWithClientAuth.java	1.5 01/05/10
  *
@@ -60,11 +61,12 @@ import java.util.EnumSet;
  * The application can be modified to connect to a server outside
  * the firewall by following SSLSocketClientWithTunneling.java.
  */
-public class Cliente_autenticado_con_OCSPStapling {
+
+public class ClienteAutenticadoOCSP {
 
 
-	private static String 	raizMios  = "./keyStoreCliente/";
-    
+	private static String 	raizAlmacenes  = "./keyStoreCliente/";
+
 	
     public static void main(String[] args) throws Exception {
 	
@@ -94,16 +96,10 @@ public class Cliente_autenticado_con_OCSPStapling {
 	     System.exit(-1);
 	}
 
-	//Directorio de trabajo
-	//raizAlmacenes = System.getProperty("user.dir");
-    //ficheroKeyStore = raizAlmacenes + "/keyStoreCliente/keyStoreClient1.jce";
-    //ficheroTrustStore = raizAlmacenes + "/keyStoreCliente/trustStoreClient1.jce";
-
 	try {
 
 		definirAlmacenesCliente();
-		definirRevocacionOCSPStapling();
-		//definirRevocacionOCSP();
+		definirRevocacionOCSP();
 	
 		/*
 	     * Set up a key manager for client authentication
@@ -126,7 +122,6 @@ public class Cliente_autenticado_con_OCSPStapling {
 			// --- Trust manager.
 			
 			//  1. Crear PKIXRevocationChecker
-
 			CertPathBuilder cpb = CertPathBuilder.getInstance("PKIX");
 			PKIXRevocationChecker rc = (PKIXRevocationChecker) cpb.getRevocationChecker();
 			rc.setOptions(EnumSet.of(PKIXRevocationChecker.Option.NO_FALLBACK));
@@ -135,13 +130,13 @@ public class Cliente_autenticado_con_OCSPStapling {
 			//   2. Crear el truststore 
 			
 			KeyStore ts = KeyStore.getInstance("JCEKS");
-			ts.load(new FileInputStream(raizMios + "trustStoreClient1.jce"), passphrase);
+			ts.load(new FileInputStream(raizAlmacenes + "trustStoreClient1.jce"), passphrase);
 			
 			//  3. Crear los parametros PKIX y el PKIXRevocationChecker
 			
 			PKIXBuilderParameters pkixParams = new PKIXBuilderParameters(ts, new X509CertSelector());
 			pkixParams.addCertPathChecker(rc);
-			pkixParams.setRevocationEnabled(false); // habilitar la revocacion (por si acaso)
+			pkixParams.setRevocationEnabled(true); // habilitar la revocacion (por si acaso)
 			
 			//
 			TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
@@ -152,19 +147,19 @@ public class Cliente_autenticado_con_OCSPStapling {
 			
 			kmf = KeyManagerFactory.getInstance("SunX509");
 			ks = KeyStore.getInstance("JCEKS");
-			ks.load(new FileInputStream(raizMios + "keyStoreClient1.jce"), passphrase);
+			ks.load(new FileInputStream(raizAlmacenes + "keyStoreClient1.jce"), passphrase);
 			kmf.init(ks, passphrase);
 			
 			// Crear el contexto
 			ctx = SSLContext.getInstance("TLS");		
 			ctx.init(kmf.getKeyManagers(),  
-					 null, //tmf.getTrustManagers(), 
+					 tmf.getTrustManagers(), 
 					 null);
 	
 			factory = ctx.getSocketFactory();
 			        
-			// Suites disponibles		
-		
+			// Suites disponibles
+			
 	    	 System.out.println ("*****************************************************");
 	    	 System.out.println ("*         CypherSuites Disponibles en CLIENTE        ");
 	    	 System.out.println ("*****************************************************");
@@ -309,24 +304,19 @@ public class Cliente_autenticado_con_OCSPStapling {
 	} catch (Exception e) {
 	    e.printStackTrace();
 	}
-    }
-    
-
-	
+    }	
 	
     private static void definirAlmacenesCliente()
 	{
-		String 	raizMios     = "./keyStoreCliente/";
 
 		// Almacen de claves
 		
-		System.setProperty("javax.net.ssl.keyStore",            raizMios + "keyStoreClient1.jce");
-		System.setProperty("javax.net.ssl.keyStoreType",       "JCEKS");
-		System.setProperty("javax.net.ssl.keyStorePassword",   "criptonika");
+		System.setProperty("javax.net.ssl.keyStore",         raizAlmacenes + "keyStoreClient1.jce");
+		System.setProperty("javax.net.ssl.keyStoreType",     "JCEKS");
+		System.setProperty("javax.net.ssl.keyStorePassword", "criptonika");
 
 		// Almacen de confianza
-		
-		System.setProperty("javax.net.ssl.trustStore",          raizMios + "trustStoreClient1.jce");		
+		System.setProperty("javax.net.ssl.trustStore",          raizAlmacenes + "trustStoreClient1.jce");		
 		System.setProperty("javax.net.ssl.trustStoreType",     "JCEKS");
 		System.setProperty("javax.net.ssl.trustStorePassword", "criptonika");
 
@@ -339,17 +329,6 @@ public class Cliente_autenticado_con_OCSPStapling {
 		
 		System.setProperty("com.sun.net.ssl.checkRevocation",        "true");
 		System.setProperty("ocsp.enable",                            "true");
-
-	}
-    
-    private static void definirRevocacionOCSPStapling()
-	{
-
-		// Almacen de claves
-		
-		System.setProperty("jdk.tls.client.enableStatusRequestExtension",   "true");
-		System.setProperty("com.sun.net.ssl.checkRevocation",        "true");
-		System.setProperty("ocsp.enable",                            "false");
 
 	}
 }

@@ -1,6 +1,6 @@
 
 /*
- * @(#)ClassFileServer_con_OCSPStapling.java	1.5 01/05/10
+ * @(#)ClassFileServer_con_OCSPStaplingSubCA.java	1.5 01/05/10
  *
  * Copyright 1994-2004 Sun Microsystems, Inc. All Rights Reserved. 
  *
@@ -52,16 +52,16 @@ import javax.net.*;
 import javax.net.ssl.*;
 import javax.security.cert.X509Certificate;
 
-/* ClassFileServer_con_OCSPStapling.java -- a simple file server that can server
+/* ClassFileServer_con_OCSPStaplingSubCA.java -- a simple file server that can server
  * Http get request in both clear and secure channel
  *
- * The ClassFileServer_con_OCSPStapling implements a ClassServer that
+ * The ClassFileServer_con_OCSPStaplingSubCA implements a ClassServer that
  * reads files from the file system. See the
  * doc for the "Main" method for how to run this
  * server.
  */
 
-public class ClassFileServer_con_OCSPStapling extends ClassServer {
+public class ClassFileServer_con_OCSPStaplingSubCA extends ClassServer {
 
     private String docroot;
 
@@ -69,11 +69,11 @@ public class ClassFileServer_con_OCSPStapling extends ClassServer {
 	private static String 	raizMios     = "./keyStoreServidor/";
 
     /**
-     * Constructs a ClassFileServer_con_OCSPStapling.
+     * Constructs a ClassFileServer_con_OCSPStaplingSubCA.
      *
      * @param path the path where the server locates files
      */
-    public ClassFileServer_con_OCSPStapling(ServerSocket ss, String docroot) throws IOException
+    public ClassFileServer_con_OCSPStaplingSubCA(ServerSocket ss, String docroot) throws IOException
     {
 	super(ss);
 	this.docroot = docroot;
@@ -111,10 +111,10 @@ public class ClassFileServer_con_OCSPStapling extends ClassServer {
      * port on which the server accepts requests and the
      * root of the path. To start up the server: <br><br>
      *
-     * <code>   java ClassFileServer_con_OCSPStapling <port> <path>
+     * <code>   java ClassFileServer_con_OCSPStaplingSubCA <port> <path>
      * </code><br><br>
      *
-     * <code>   new ClassFileServer_con_OCSPStapling(port, docroot);
+     * <code>   new ClassFileServer_con_OCSPStaplingSubCA(port, docroot);
      * </code>
      */
     
@@ -123,7 +123,7 @@ public class ClassFileServer_con_OCSPStapling extends ClassServer {
    	String[]   cipherSuites = null;
         
 	System.out.println(
-	    "USAGE: java ClassFileServer_con_OCSPStapling port docroot [TLS [true]]");
+	    "USAGE: java ClassFileServer_con_OCSPStaplingSubCA port docroot [TLS [true]]");
 	System.out.println("");
 	System.out.println(
 	    "If the third argument is TLS, it will start as\n" +
@@ -162,7 +162,7 @@ public class ClassFileServer_con_OCSPStapling extends ClassServer {
 	
 	try {
 	    ServerSocketFactory ssf =
-	    		ClassFileServer_con_OCSPStapling.getServerSocketFactory(type);
+	    		ClassFileServer_con_OCSPStaplingSubCA.getServerSocketFactory(type);
 	    
 	    ServerSocket ss = ssf.createServerSocket(port);
 	    
@@ -228,7 +228,7 @@ public class ClassFileServer_con_OCSPStapling extends ClassServer {
 	    	
 	    }
 	    
-	    new ClassFileServer_con_OCSPStapling(ss, docroot);
+	    new ClassFileServer_con_OCSPStaplingSubCA(ss, docroot);
 
 	} catch (IOException e) {
 	    System.out.println("Unable to start ClassServer: " +
@@ -293,7 +293,7 @@ public class ClassFileServer_con_OCSPStapling extends ClassServer {
 
 			kmf = KeyManagerFactory.getInstance("SunX509");
 			ks = KeyStore.getInstance("JCEKS");	
-			ks.load(new FileInputStream(raizMios + "keyStoreServer.jce"), passphrase);
+			ks.load(new FileInputStream(raizMios + "keyStoreServerSubCA2.jce"), passphrase);
 			kmf.init(ks, passphrase);
 		
 			// Crear el contexto
@@ -323,7 +323,7 @@ public class ClassFileServer_con_OCSPStapling extends ClassServer {
 
 		// Almacen de claves
 		
-		System.setProperty("javax.net.ssl.keyStore",         raizMios + "keyStoreServer.jce");
+		System.setProperty("javax.net.ssl.keyStore",         raizMios + "keyStoreServerSubCA2.jce");
 		System.setProperty("javax.net.ssl.keyStoreType",     "JCEKS");
 		System.setProperty("javax.net.ssl.keyStorePassword", "criptonika");
 

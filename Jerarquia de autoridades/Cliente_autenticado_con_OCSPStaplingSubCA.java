@@ -60,7 +60,7 @@ import java.util.EnumSet;
  * The application can be modified to connect to a server outside
  * the firewall by following SSLSocketClientWithTunneling.java.
  */
-public class Cliente_autenticado_con_OCSPStapling {
+public class Cliente_autenticado_con_OCSPStaplingSubCA {
 
 
 	private static String 	raizMios  = "./keyStoreCliente/";
@@ -135,7 +135,7 @@ public class Cliente_autenticado_con_OCSPStapling {
 			//   2. Crear el truststore 
 			
 			KeyStore ts = KeyStore.getInstance("JCEKS");
-			ts.load(new FileInputStream(raizMios + "trustStoreClient1.jce"), passphrase);
+			ts.load(new FileInputStream(raizMios + "trustStoreClientSubCA.jce"), passphrase);
 			
 			//  3. Crear los parametros PKIX y el PKIXRevocationChecker
 			
@@ -152,13 +152,13 @@ public class Cliente_autenticado_con_OCSPStapling {
 			
 			kmf = KeyManagerFactory.getInstance("SunX509");
 			ks = KeyStore.getInstance("JCEKS");
-			ks.load(new FileInputStream(raizMios + "keyStoreClient1.jce"), passphrase);
+			ks.load(new FileInputStream(raizMios + "keyStoreClientSubCA.jce"), passphrase);
 			kmf.init(ks, passphrase);
 			
 			// Crear el contexto
 			ctx = SSLContext.getInstance("TLS");		
 			ctx.init(kmf.getKeyManagers(),  
-					 null, //tmf.getTrustManagers(), 
+					 tmf.getTrustManagers(), 
 					 null);
 	
 			factory = ctx.getSocketFactory();
@@ -320,13 +320,13 @@ public class Cliente_autenticado_con_OCSPStapling {
 
 		// Almacen de claves
 		
-		System.setProperty("javax.net.ssl.keyStore",            raizMios + "keyStoreClient1.jce");
+		System.setProperty("javax.net.ssl.keyStore",            raizMios + "keyStoreClientSubCA.jce");
 		System.setProperty("javax.net.ssl.keyStoreType",       "JCEKS");
 		System.setProperty("javax.net.ssl.keyStorePassword",   "criptonika");
 
 		// Almacen de confianza
 		
-		System.setProperty("javax.net.ssl.trustStore",          raizMios + "trustStoreClient1.jce");		
+		System.setProperty("javax.net.ssl.trustStore",          raizMios + "trustStoreClientSubCA.jce");		
 		System.setProperty("javax.net.ssl.trustStoreType",     "JCEKS");
 		System.setProperty("javax.net.ssl.trustStorePassword", "criptonika");
 

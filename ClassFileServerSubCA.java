@@ -82,10 +82,6 @@ public class ClassFileServerSubCA extends ClassServer {
      *****************************************************/
     public static void main(String args[])
     {
-		//Directorio de trabajo
-		raiz = System.getProperty("user.dir");
-
-
 		System.out.println(
 		    "USAGE: java ClassFileServerSubCA port docroot [TLS [true]]");
 		System.out.println("");
@@ -157,7 +153,7 @@ public class ClassFileServerSubCA extends ClassServer {
 			kmf = KeyManagerFactory.getInstance("SunX509");
 
 			ks  = KeyStore.getInstance("JCEKS");
-			ks.load(new FileInputStream(raiz + "/keyStoreServidor/keyStoreServerSubCA.jce"), contrasinal);
+			ks.load(new FileInputStream(raiz + "keyStoreServerSubCA2.jce"), contrasinal);
 
 			kmf.init(ks, contrasinal);
 			
@@ -190,13 +186,13 @@ public class ClassFileServerSubCA extends ClassServer {
 	{
 	    // Almacen de claves
 		
-	    System.setProperty("javax.net.ssl.keyStore",           raiz + "/keyStoreServidor/keyStoreServerSubCA.jce");
+	    System.setProperty("javax.net.ssl.keyStore", raiz + "keyStoreServerSubCA.jce");
 	    System.setProperty("javax.net.ssl.keyStoreType",     "JCEKS");
 	    System.setProperty("javax.net.ssl.keyStorePassword", "criptonika");
 	
 	    // Almacen de confianza
 	    
-	    System.setProperty("javax.net.ssl.trustStore",         raiz + "/keyStoreServidor/trustStoreServer.jce");
+	    System.setProperty("javax.net.ssl.trustStore", raiz + "trustStoreServer.jce");
 	    System.setProperty("javax.net.ssl.trustStoreType",     "JCEKS");
 	    System.setProperty("javax.net.ssl.trustStorePassword", "criptonika");
 	}

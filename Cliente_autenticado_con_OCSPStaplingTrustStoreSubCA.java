@@ -135,7 +135,7 @@ public class Cliente_autenticado_con_OCSPStapling {
 			//   2. Crear el truststore 
 			
 			KeyStore ts = KeyStore.getInstance("JCEKS");
-			ts.load(new FileInputStream(raizMios + "trustStoreClient1.jce"), passphrase);
+			ts.load(new FileInputStream(raizMios + "trustStoreClientSubCA.jce"), passphrase);
 			
 			//  3. Crear los parametros PKIX y el PKIXRevocationChecker
 			
@@ -158,7 +158,7 @@ public class Cliente_autenticado_con_OCSPStapling {
 			// Crear el contexto
 			ctx = SSLContext.getInstance("TLS");		
 			ctx.init(kmf.getKeyManagers(),  
-					 null, //tmf.getTrustManagers(), 
+					 tmf.getTrustManagers(), 
 					 null);
 	
 			factory = ctx.getSocketFactory();
@@ -326,7 +326,7 @@ public class Cliente_autenticado_con_OCSPStapling {
 
 		// Almacen de confianza
 		
-		System.setProperty("javax.net.ssl.trustStore",          raizMios + "trustStoreClient1.jce");		
+		System.setProperty("javax.net.ssl.trustStore",          raizMios + "trustStoreClientSubCA.jce");		
 		System.setProperty("javax.net.ssl.trustStoreType",     "JCEKS");
 		System.setProperty("javax.net.ssl.trustStorePassword", "criptonika");
 

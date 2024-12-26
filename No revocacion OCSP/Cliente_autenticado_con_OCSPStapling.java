@@ -63,7 +63,7 @@ import java.util.EnumSet;
 public class Cliente_autenticado_con_OCSPStapling {
 
 
-	private static String 	raizMios  = "./keyStoreCliente/";
+	private static String 	raizMios  = "../keyStoreCliente/";
     
 	
     public static void main(String[] args) throws Exception {
@@ -158,7 +158,7 @@ public class Cliente_autenticado_con_OCSPStapling {
 			// Crear el contexto
 			ctx = SSLContext.getInstance("TLS");		
 			ctx.init(kmf.getKeyManagers(),  
-					 null, //tmf.getTrustManagers(), 
+					 tmf.getTrustManagers(), 
 					 null);
 	
 			factory = ctx.getSocketFactory();

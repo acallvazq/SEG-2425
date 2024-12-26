@@ -49,9 +49,9 @@ public class ClienteAutenticado {
 		String[] cipherSuites = null;
 
         //Directorio de trabajo
-		raizAlmacenes = System.getProperty("user.dir");
-        ficheroKeyStore = raizAlmacenes + "/keyStoreCliente/keyStoreClient1.jce";
-        ficheroTrustStore = raizAlmacenes + "/keyStoreCliente/trustStoreClient1.jce";
+		raizAlmacenes = "./keyStoreCliente/";
+        ficheroKeyStore = raizAlmacenes + "keyStoreClient1.jce";
+        ficheroTrustStore = raizAlmacenes + "trustStoreClient1.jce";
         
         System.out.println(ficheroKeyStore);
         System.out.println(ficheroTrustStore);

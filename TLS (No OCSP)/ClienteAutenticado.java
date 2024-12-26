@@ -31,7 +31,7 @@ import javax.net.ssl.TrustManager;
  * following SSLSocketClientWithTunneling.java.
  * 
  ****************************************************************************/
-public class ClienteAutenticadoSubCAClient {
+public class ClienteAutenticado {
 
 
 	private static String raizAlmacenes;
@@ -49,9 +49,9 @@ public class ClienteAutenticadoSubCAClient {
 		String[] cipherSuites = null;
 
         //Directorio de trabajo
-		raizAlmacenes = "./keyStoreCliente/";
-        ficheroKeyStore = raizAlmacenes + "keyStoreClientSubCA.jce";
-        ficheroTrustStore = raizAlmacenes + "trustStoreClientSubCA.jce";
+		raizAlmacenes = "../keyStoreCliente/";
+        ficheroKeyStore = raizAlmacenes + "keyStoreClient1.jce";
+        ficheroTrustStore = raizAlmacenes + "trustStoreClient1.jce";
         
         System.out.println(ficheroKeyStore);
         System.out.println(ficheroTrustStore);

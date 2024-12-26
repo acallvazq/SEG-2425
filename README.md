@@ -32,12 +32,12 @@ openssl ocsp -port 9080 -index db/index -rsigner root-ocsp.crt -rkey private/roo
 ```
 
 ```
-java ClassFileServer 8080 .\textosPrueba\ TLS true
+java ClassFileServer 8080 ./textosPrueba TLS true
 ```
 
 (Del cliente hay que cambiar la IP del OCSP en Java a la que corresponda)
 ```
-java SSLSocketClientWithClientAuthOCSP 127.0.0.1 8080 textoclaro.txt
+java ClienteAutenticadoOCSP 127.0.0.1 8080 textoclaro.txt
 ```
 
 ### Servidor Autenticado con OCSP (OCSP Stapling)
@@ -47,20 +47,20 @@ openssl ocsp -port 9080 -index db/index -rsigner root-ocsp.crt -rkey private/roo
 ```
 
 ```
-java ClassFileServer_con_OCSPStapling 7080 /home/alba/24-25/SEG/SEG-2425/ TLS true
+java ClassFileServer_con_OCSPStapling 7080 /home/alba/24-25/SEG/SEG-2425/textosPrueba TLS true
 ```
 
 ```
-java Cliente_autenticado_con_OCSPStapling 192.168.1.137 7080 pikachu.jpg
+java Cliente_autenticado_con_OCSPStapling 192.168.1.138 7080 textoclaro.txt
 ```
 
 ```
-openssl s_client -connect 192.168.1.137:7080 -status
+openssl s_client -connect 192.168.1.138:7080 -status
 ```
 
 Si utilizamos s_client entonces
 ```
-java ClassFileServer_con_OCSPStapling 7080 /home/alba/24-25/SEG/SEG-2425/ TLS
+java ClassFileServer_con_OCSPStapling 7080 /home/alba/24-25/SEG/SEG-2425/textosPrueba TLS
 ```
 ### Servidor Autenticado con OCSP y Servidor Sub-CA
 
@@ -69,7 +69,7 @@ java ClassFileServerSubCA 7080 /home/alba/24-25/SEG/SEG-2425 TLS true
 ```
 
 ```
-java Cliente_autenticado_con_OCSPStapling 192.168.1.137 7080 textosPrueba/textoclaro.txt
+java Cliente_autenticado_con_OCSPStaplingTrustStoreSubCA 192.168.1.137 7080 textosPrueba/textoclaro.txt
 ```
 
 ```

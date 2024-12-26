@@ -7,16 +7,16 @@ import javax.net.ssl.*;
 import javax.security.cert.X509Certificate;
 
 /*********************************************************************
- * ClassFileServer.java -- a simple file server that can server
+ * ClassFileServerSubCA.java -- a simple file server that can server
  * Http get request in both clear and secure channel
  *
- * The ClassFileServer implements a ClassServer that
+ * The ClassFileServerSubCA implements a ClassServer that
  * reads files from the file system. See the
  * doc for the "Main" method for how to run this
  * server.
  ********************************************************************/
 
-public class ClassFileServer extends ClassServer {
+public class ClassFileServerSubCA extends ClassServer {
 
     private String     		docroot;
     private static int 		DefaultServerPort = 9001;
@@ -25,11 +25,11 @@ public class ClassFileServer extends ClassServer {
 	//	ks.load(new FileInputStream("c:/comun/escuela/seguridad_bolonia/practica2013/cliente/testkeys.jks"), passphrase);
 
     /**********************************************************
-     * Constructs a ClassFileServer.
+     * Constructs a ClassFileServerSubCA.
      *
      * @param path the path where the server locates files
      **********************************************************/
-    public ClassFileServer(ServerSocket ss, String docroot) throws IOException
+    public ClassFileServerSubCA(ServerSocket ss, String docroot) throws IOException
     {
 		super(ss);
 		this.docroot = docroot;
@@ -74,20 +74,16 @@ public class ClassFileServer extends ClassServer {
      * port on which the server accepts requests and the
      * root of the path. To start up the server: <
      *
-     *   java ClassFileServer <port> <path>
+     *   java ClassFileServerSubCA <port> <path>
      * 
      *
-     * <code>   new ClassFileServer(port, docroot);
+     * <code>   new ClassFileServerSubCA(port, docroot);
      * </code>
      *****************************************************/
     public static void main(String args[])
     {
-		// //Directorio de trabajo
-		// raiz = System.getProperty("user.dir");
-
-
 		System.out.println(
-		    "USAGE: java ClassFileServer port docroot [TLS [true]]");
+		    "USAGE: java ClassFileServerSubCA port docroot [TLS [true]]");
 		System.out.println("");
 		System.out.println(
 		    "If the third argument is TLS, it will start as\n" +
@@ -116,7 +112,7 @@ public class ClassFileServer extends ClassServer {
 	
 		try {
 		    ServerSocketFactory ssf =
-		    		ClassFileServer.getServerSocketFactory(type);
+		    		ClassFileServerSubCA.getServerSocketFactory(type);
 	
 		    ServerSocket ss = ssf.createServerSocket(port);
 	
@@ -126,7 +122,7 @@ public class ClassFileServer extends ClassServer {
 		    	((SSLServerSocket)ss).setNeedClientAuth(true);
 		    }
 		
-		    new ClassFileServer(ss, docroot);
+		    new ClassFileServerSubCA(ss, docroot);
 		
 		} catch (IOException e) {
 		    System.out.println("Unable to start ClassServer: " +
@@ -157,7 +153,7 @@ public class ClassFileServer extends ClassServer {
 			kmf = KeyManagerFactory.getInstance("SunX509");
 
 			ks  = KeyStore.getInstance("JCEKS");
-			ks.load(new FileInputStream(raiz + "/keyStoreServer.jce"), contrasinal);
+			ks.load(new FileInputStream(raiz + "keyStoreServerSubCA2.jce"), contrasinal);
 
 			kmf.init(ks, contrasinal);
 			
@@ -190,13 +186,13 @@ public class ClassFileServer extends ClassServer {
 	{
 	    // Almacen de claves
 		
-	    System.setProperty("javax.net.ssl.keyStore",           raiz + "/keyStoreServer.jce");
+	    System.setProperty("javax.net.ssl.keyStore",           raiz + "keyStoreServerSubCA.jce");
 	    System.setProperty("javax.net.ssl.keyStoreType",     "JCEKS");
 	    System.setProperty("javax.net.ssl.keyStorePassword", "criptonika");
 	
 	    // Almacen de confianza
 	    
-	    System.setProperty("javax.net.ssl.trustStore",         raiz + "/trustStoreServer.jce");
+	    System.setProperty("javax.net.ssl.trustStore",         raiz + "trustStoreServer.jce");
 	    System.setProperty("javax.net.ssl.trustStoreType",     "JCEKS");
 	    System.setProperty("javax.net.ssl.trustStorePassword", "criptonika");
 	}
