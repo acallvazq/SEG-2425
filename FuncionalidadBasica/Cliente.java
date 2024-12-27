@@ -2,7 +2,11 @@ import java.util.Scanner;
 import java.net.*;
 import java.io.*;
 import javax.net.ssl.*;
-
+import java.security.*;
+import javax.crypto.*;
+import javax.crypto.spec.*;
+import java.security.AlgorithmParameters;
+import java.nio.charset.Charset;
 
 public class Cliente {
     //Atributos y constantes
@@ -10,6 +14,7 @@ public class Cliente {
     private static String ficheroKeyStore;
     private static String ficheroTrustStore;
     private static String contrasinal = "criptonika";
+	private static byte[] claveSimetrica = null;
     
     //Clases
     public static void main (String[] args){
@@ -27,17 +32,17 @@ public class Cliente {
 		//Directorio de trabajo
 		raiz = System.getProperty("user.dir");
 		ficheroKeyStore = raiz + "/keyStoreCliente/keyStoreClient1.jce";
-        ficheroTrustStore = raiz + "/keyStoreCliente/trustStoreClient.jce";
+        ficheroTrustStore = raiz + "/keyStoreCliente/trustStoreClient1.jce";
 
 		definirKeyStores();
-		iniciarConexionTLS(host, port);
+		//iniciarConexionTLS(host, port);
 
-		menu();   
+		menu(host, port);   
 
     }
 
     //Metodos
-	private static void menu(){
+	private static void menu(String host, int port){
 		String respuesta;
         Scanner scanner = new Scanner(System.in);
 		int salir = 1;
@@ -58,7 +63,7 @@ public class Cliente {
 
             switch(respuesta){
                 case "1":
-                    registrarDocumento();
+                    registrarDocumento(host, port);
                     break;
                 case "2":
                   //  recuperarDocumento();   
@@ -77,8 +82,8 @@ public class Cliente {
 	 *              Registrar un Documento
 	 *****************************************************/
 
-    private static void registrarDocumento(){
-        iniciarConexionTLS("localhost",8090, 1);
+    private static void registrarDocumento(String host, int port){
+        iniciarConexionTLS(host,port, 1);
     }
 
 
@@ -91,22 +96,21 @@ public class Cliente {
 			
 			// Ver las suites SSL disponibles
 			System.out.println ("CypherSuites");
-			SSLContext context = SSLContext.getDefault();
-			SSLSocketFactory sf = context.getSocketFactory();
+			SSLContext context = SSLContext.getInstance("TLS");
 			KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
 			KeyStore ks = KeyStore.getInstance("JCEKS");
 
-			ks.load(new FileInputStream(keyStorePathCliente), contrasinal);
-			kmf.init(ks, contrasinal);
+			ks.load(new FileInputStream(Cliente.ficheroKeyStore), contrasinal.toCharArray());
+			kmf.init(ks, contrasinal.toCharArray());
 				
-			ctx.init(kmf.getKeyManagers(), null, null);
+			context.init(kmf.getKeyManagers(), null, null);
 
 			// Asignamos un socket al contexto.
 
-			SSLSocketFactory factory = ctx.getSocketFactory();
+			SSLSocketFactory factory = context.getSocketFactory();
 			SSLSocket socket = (SSLSocket) factory.createSocket(host, port);
 				
-			String[] cipherSuites = sf.getSupportedCipherSuites();
+			String[] cipherSuites = factory.getSupportedCipherSuites();
 
 			for (int i=0; i<cipherSuites.length; i++);//System.out.println (cipherSuites[i]);
 
@@ -116,44 +120,61 @@ public class Cliente {
 				
 			System.out.println ("Fin SSL Handshake");
 
+			ObjectOutputStream outObj = new ObjectOutputStream(socket.getOutputStream());
+			PrintWriter out = new PrintWriter(
+								new BufferedWriter(
+								new OutputStreamWriter(
+								socket.getOutputStream())));
+
 			if (idOperacion == 1){
 				String pathFile = preguntaUsuario("Introduce el directorio del archivo que deseas enviar: ");
 
 				SSLSession session = socket.getSession();
         		java.security.cert.Certificate[] localcerts = session.getLocalCertificates();
+				java.security.cert.Certificate[] remotecerts = session.getPeerCertificates();
 
-				java.security.cert.Certificate localCert = localcerts[0];
-
-				byte[] documento = getBytes(pathFile);
+				// java.security.cert.Certificate localCert = localcerts[0];
+				java.security.cert.Certificate remoteCert = remotecerts[0];
 
 				MensajeRegistrarDocumento mensaje = new MensajeRegistrarDocumento();
 
-				mensaje.setNombreFichero(pathFile);
+				mensaje.setNombreDocumento(pathFile.getBytes(Charset.forName("UTF-8")));
 
-				// Hay que cifrarlo todavía
-				mensaje.setDocumento(documento);
+				System.out.println("Nombre documento: " + pathFile);
 
-				mensaje.setCertificado(localCert);
+				byte[] claveSimetrica = Cliente.crearClaveSimetrica();
 
-				// Crear clave simétrica
-				SecretKey claveSimetrica = mensaje.crearClaveSimetrica();
+				System.out.println("Clave simetrica: " + new String(claveSimetrica));
+
+				System.out.println("Documento a cifrar: " + new String(Cliente.getBytes(pathFile)));
+
+				byte[] documentoCifrado = MensajeRegistrarDocumento.cifrarDocumento(new FileInputStream(pathFile), claveSimetrica);
+
+				mensaje.setDocumentoCifrado(documentoCifrado);
+
+				System.out.println("Documento cifrado: " + new String(documentoCifrado));
+
+				byte[] claveSimetricaCifrada = MensajeRegistrarDocumento.cifrarClaveSimetrica(claveSimetrica, remoteCert.getPublicKey());
+
+				System.out.println("Clave simetrica cifrada: " + new String(claveSimetricaCifrada));
+
+				mensaje.setClaveSimetricaCifrada(claveSimetricaCifrada);
+
+				// mensaje.setCertificado(localCert);
 
 				System.out.println("Registrando documento...");
+
+
+				out.println("GET " + pathFile  + " "  + " HTTP/1.0");
+				out.println();
+				out.flush();
+
+				System.out.println("GET " + pathFile + " " + "HTTP/1.0");
 			}
 			else{
 				
 			}
 
-			PrintWriter out = new PrintWriter(
-							new BufferedWriter(
-							new OutputStreamWriter(
-							socket.getOutputStream())));
-
-			out.println("GET " + "/" + args[2]  + " "  + " HTTP/1.0");
-			out.println();
-			out.flush();
-
-			System.out.println("GET " + "/" + args[2]  + " " + "HTTP/1.0");
 			/*
 			* Make sure there were no surprises
 			*/
@@ -172,6 +193,7 @@ public class Cliente {
 			in.close();
 			out.close();
 			socket.close();
+			outObj.close();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -214,10 +236,10 @@ public class Cliente {
     *  @exception FileNotFoundException si el fichero 
     *      <b>path</b> no existe
     *********************************************************/
-    public byte[] getBytes(String path)  
+    public static byte[] getBytes(String path)  
     	                throws IOException, FileNotFoundException     {
 
-	    String fichero = docroot + File.separator + path;
+	    String fichero = path;
 
 	    File f = new File(fichero);
 		int length = (int)(f.length());
@@ -236,6 +258,33 @@ public class Cliente {
 	
 		    in.readFully(bytecodes);
 		    return bytecodes;
+		}
+    }
+
+	public static byte[] crearClaveSimetrica() {
+
+		if (Cliente.claveSimetrica != null) {
+			return Cliente.claveSimetrica;
+		}
+
+		try {
+
+
+        // Generarla
+        String algoritmo = "AES";
+        KeyGenerator kgen = KeyGenerator.getInstance(algoritmo);
+		int longclave = 128;
+        kgen.init(longclave);
+
+        SecretKey skey = kgen.generateKey();
+
+		Cliente.claveSimetrica = skey.getEncoded();
+
+        // Almacenarla
+        return Cliente.claveSimetrica;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new byte[0];
 		}
     }
 }

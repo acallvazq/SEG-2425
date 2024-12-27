@@ -2,7 +2,11 @@ import java.util.Scanner;
 import java.net.*;
 import java.io.*;
 import javax.net.ssl.*;
-
+import java.security.*;
+import javax.crypto.*;
+import javax.crypto.spec.*;
+import java.security.AlgorithmParameters;
+import java.nio.charset.Charset;
 
 public class Cliente {
     //Atributos y constantes
@@ -10,6 +14,7 @@ public class Cliente {
     private static String ficheroKeyStore;
     private static String ficheroTrustStore;
     private static String contrasinal = "criptonika";
+	private static byte[] claveSimetrica = null;
     
     //Clases
     public static void main (String[] args){
@@ -77,39 +82,12 @@ public class Cliente {
 	 *              Registrar un Documento
 	 *****************************************************/
 
-<<<<<<< HEAD
     private static void registrarDocumento(String host, int port){
-		String pathFile = preguntaUsuario("Introduce el directorio del archivo que deseas enviar: ");  // /home/alba/24-25/SEG/SEG-2425/textosPrueba/textoclaro.txt
-        
-		//Creación de socket
-        iniciarConexionTLS(host, port, pathFile);
-		
-=======
-    private static void registrarDocumento(){
-        iniciarConexionTLS("localhost",8090, 1);
-
->>>>>>> d14de11 (Co-authored-by: PiterDev <PiterWeb@users.noreply.github.com> Commit Brutal clasificando para la practica)
-		System.out.println("Registrando documento...");
+        iniciarConexionTLS(host,port, 1);
     }
 
-	private static String preguntaUsuario(String mensaje){
-        String respuesta;
-		Scanner scanner = new Scanner(System.in);
 
-<<<<<<< HEAD
-		System.out.print(mensaje);
-        respuesta = scanner.nextLine();
-
-		return respuesta;
-    }
-
-	/*******************************************************
-	 *              inicializar conexion TLS
-	 *******************************************************/
-    private static void iniciarConexionTLS(String host, int port, String pathFile){
-=======
     private static void iniciarConexionTLS(String host, int port, int idOperacion){
->>>>>>> d14de11 (Co-authored-by: PiterDev <PiterWeb@users.noreply.github.com> Commit Brutal clasificando para la practica)
 		try{
 			// SSLSocketFactory factory = (SSLSocketFactory)SSLSocketFactory.getDefault();
 
@@ -118,24 +96,23 @@ public class Cliente {
 			
 			// Ver las suites SSL disponibles
 			System.out.println ("CypherSuites");
-			SSLContext context = SSLContext.getDefault();
-			SSLSocketFactory sf = context.getSocketFactory();
+			SSLContext context = SSLContext.getInstance("TLS");
 			KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
 			KeyStore ks = KeyStore.getInstance("JCEKS");
 
-			ks.load(new FileInputStream(keyStorePathCliente), contrasinal);
-			kmf.init(ks, contrasinal);
+			ks.load(new FileInputStream(Cliente.ficheroKeyStore), contrasinal.toCharArray());
+			kmf.init(ks, contrasinal.toCharArray());
 				
-			ctx.init(kmf.getKeyManagers(), null, null);
+			context.init(kmf.getKeyManagers(), null, null);
 
 			// Asignamos un socket al contexto.
 
-			SSLSocketFactory factory = ctx.getSocketFactory();
+			SSLSocketFactory factory = context.getSocketFactory();
 			SSLSocket socket = (SSLSocket) factory.createSocket(host, port);
 				
-			String[] cipherSuites = sf.getSupportedCipherSuites();
+			String[] cipherSuites = factory.getSupportedCipherSuites();
 
-			for (int i=0; i<cipherSuites.length; i++); //System.out.println (cipherSuites[i]);
+			for (int i=0; i<cipherSuites.length; i++);//System.out.println (cipherSuites[i]);
 
 			System.out.println ("Comienzo SSL Handshake");
 
@@ -143,36 +120,68 @@ public class Cliente {
 				
 			System.out.println ("Fin SSL Handshake");
 
+			ObjectOutputStream outObj = new ObjectOutputStream(socket.getOutputStream());
+			PrintWriter out = new PrintWriter(
+								new BufferedWriter(
+								new OutputStreamWriter(
+								socket.getOutputStream())));
+
 			if (idOperacion == 1){
 				String pathFile = preguntaUsuario("Introduce el directorio del archivo que deseas enviar: ");
 
 				SSLSession session = socket.getSession();
         		java.security.cert.Certificate[] localcerts = session.getLocalCertificates();
+				java.security.cert.Certificate[] remotecerts = session.getPeerCertificates();
 
-				java.security.cert.Certificate localCert = localcerts[0];
+				// java.security.cert.Certificate localCert = localcerts[0];
+				java.security.cert.Certificate remoteCert = remotecerts[0];
 
+				MensajeRegistrarDocumento mensaje = new MensajeRegistrarDocumento();
+
+				mensaje.setNombreDocumento(pathFile.getBytes(Charset.forName("UTF-8")));
+
+				System.out.println("Nombre documento: " + pathFile);
+
+				byte[] claveSimetrica = Cliente.crearClaveSimetrica();
+
+				System.out.println("Clave simetrica: " + new String(claveSimetrica));
+
+				System.out.println("Documento a cifrar: " + new String(Cliente.getBytes(pathFile)));
+
+				byte[] documentoCifrado = MensajeRegistrarDocumento.cifrarDocumento(new FileInputStream(pathFile), claveSimetrica);
+
+				mensaje.setDocumentoCifrado(documentoCifrado);
+
+				System.out.println("Documento cifrado: " + new String(documentoCifrado));
+
+				byte[] claveSimetricaCifrada = MensajeRegistrarDocumento.cifrarClaveSimetrica(claveSimetrica, remoteCert.getPublicKey());
+
+				System.out.println("Clave simetrica cifrada: " + new String(claveSimetricaCifrada));
+
+				mensaje.setClaveSimetricaCifrada(claveSimetricaCifrada);
+
+				// mensaje.setCertificado(localCert);
+
+				System.out.println("Registrando documento...");
+
+
+				out.println("GET " + pathFile  + " "  + " HTTP/1.0");
+				out.println();
+				out.flush();
+
+				System.out.println("GET " + pathFile + " " + "HTTP/1.0");
 			}
 			else{
 				
 			}
 
-			PrintWriter out = new PrintWriter(
-							new BufferedWriter(
-							new OutputStreamWriter(
-							socket.getOutputStream())));
-
-			out.println("GET " + "/" + pathFile  + " "  + " HTTP/1.0");
-			out.println();
-			out.flush();
-
-			System.out.println("GET " + "/" + pathFile  + " " + "HTTP/1.0");
 			/*
 			* Make sure there were no surprises
 			*/
 			if (out.checkError())
 				System.out.println("SSLSocketClient:  java.io.PrintWriter error");
 
-			// Leer respuesta 
+			/* Leer respuesta */
 			BufferedReader in = new BufferedReader(
 								new InputStreamReader(
 								socket.getInputStream()));
@@ -184,11 +193,23 @@ public class Cliente {
 			in.close();
 			out.close();
 			socket.close();
+			outObj.close();
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
+    }
+
+
+	private static String preguntaUsuario(String mensaje){
+        String respuesta;
+		Scanner scanner = new Scanner(System.in);
+
+		System.out.print(mensaje);
+        respuesta = scanner.nextLine();
+
+		return respuesta;
     }
 
 	/******************************************************
@@ -197,17 +218,182 @@ public class Cliente {
     
 	private static void definirKeyStores() {
         // Almacen de credenciales
-      //  System.setProperty("javax.net.ssl.keyStore", ficheroKeyStore);
-      //  System.setProperty("javax.net.ssl.keyStoreType", "JCEKS");
-      //  System.setProperty("javax.net.ssl.keyStorePassword", contrasinal);
+        System.setProperty("javax.net.ssl.keyStore", ficheroKeyStore);
+        System.setProperty("javax.net.ssl.keyStoreType", "JCEKS");
+        System.setProperty("javax.net.ssl.keyStorePassword", contrasinal);
 
         // Almacen de confianza
-		System.setProperty("javax.net.ssl.trustStore", ficheroTrustStore);
-		System.setProperty("javax.net.ssl.trustStoreType",     "JCEKS");
-		System.setProperty("javax.net.ssl.trustStorePassword", contrasinal);
-
+        System.setProperty("javax.net.ssl.trustStore", ficheroTrustStore);
+        System.setProperty("javax.net.ssl.trustStoreType", "JCEKS");
+        System.setProperty("javax.net.ssl.trustStorePassword", contrasinal);
     }
- 
+
+	    /**********************************************************
+    * getBytes -- Retorna un array de bytes con el contenido del fichero. 
+    *    representado por el argumento <b>path</b>.
+    *
+    *  @return the bytes for the file
+    *  @exception FileNotFoundException si el fichero 
+    *      <b>path</b> no existe
+    *********************************************************/
+    public static byte[] getBytes(String path)  
+    	                throws IOException, FileNotFoundException     {
+
+	    String fichero = path;
+
+	    File f = new File(fichero);
+		int length = (int)(f.length());
+
+		System.out.println("leyendo: " + fichero);
+		
+		if (length == 0) {
+		    throw new IOException("La longitud del fichero es cero: " + path);
+		} 
+		else 
+		{
+		    FileInputStream fin = new FileInputStream(f);
+		    DataInputStream in  = new DataInputStream(fin);
+	
+		    byte[] bytecodes = new byte[length];
+	
+		    in.readFully(bytecodes);
+		    return bytecodes;
+		}
+    }
+
+	public static byte[] crearClaveSimetrica() {
+
+		if (Cliente.claveSimetrica != null) {
+			return Cliente.claveSimetrica;
+		}
+
+		try {
+
+
+        // Generarla
+        String algoritmo = "AES";
+        KeyGenerator kgen = KeyGenerator.getInstance(algoritmo);
+		int longclave = 128;
+        kgen.init(longclave);
+
+        SecretKey skey = kgen.generateKey();
+
+		Cliente.claveSimetrica = skey.getEncoded();
+
+        // Almacenarla
+        return Cliente.claveSimetrica;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new byte[0];
+		}
+    }
 }
 
 
+
+    /*
+    ------------------------     PENDIENTE DE REVISION     ------------------------
+    private SSLSocket iniciarConexionSSL(){
+        SSLSocket socket;
+        definirKeyStores();
+
+        // Crear Key Manager
+        try {
+            SSLSocketFactory factory = null;
+			SSLContext ctx;
+			KeyManagerFactory kmf;
+			KeyStore ks;
+
+			try {
+				ctx = SSLContext.getInstance("TLS");
+
+				// Definir el/los KeyManager.
+				kmf = KeyManagerFactory.getInstance("SunX509");
+				ks = KeyStore.getInstance("JCEKS");
+				ks.load(new FileInputStream(keyStorePathCliente), contrasinal);
+				kmf.init(ks, contrasinal);
+				
+				ctx.init(kmf.getKeyManagers(), null, null);
+
+				// Asignamos un socket al contexto.
+
+				factory = ctx.getSocketFactory();*/
+
+				/*********************************************************************
+				 * Suites del contexto
+				 *********************************************************************/
+	/*			System.out.println("******** CypherSuites Disponibles **********");
+				cipherSuites = factory.getSupportedCipherSuites();
+				for (int i = 0; i < cipherSuites.length; i++)
+					System.out.println(cipherSuites[i]);
+
+				// Suites habilitadas por defecto
+
+				System.out.println("******* CypherSuites Habilitadas por defecto **********");
+
+				String[] cipherSuitesDef = factory.getDefaultCipherSuites();
+				for (int i = 0; i < cipherSuitesDef.length; i++)
+					System.out.println(cipherSuitesDef[i]);
+
+			} catch (Exception e) {
+				throw new IOException(e.getMessage());
+			}
+
+			SSLSocket socket = (SSLSocket) factory.createSocket(host, port);
+
+			String[] cipherSuitesHabilitadas = { "TLS_RSA_WITH_AES_128_CBC_SHA" };
+
+			System.out.println(cipherSuitesHabilitadas[0]);
+
+			socket.setEnabledCipherSuites(cipherSuitesHabilitadas);
+
+			System.out.println("****** CypherSuites Habilitadas  **********");
+
+			String[] cipherSuitesHabilSocket = socket.getEnabledCipherSuites();
+			for (int i = 0; i < cipherSuitesHabilSocket.length; i++)
+				System.out.println(cipherSuitesHabilSocket[i]);
+
+
+			System.out.println("\n*************************************************************");
+			System.out.println("  Comienzo SSL Handshake -- Cliente y Servidor Autenticados     ");
+			System.out.println("*************************************************************");
+
+			socket.startHandshake();
+
+			System.out.println("\n*************************************************************");
+			System.out.println("      Fin OK   SSL Handshake");
+			System.out.println("*************************************************************");
+
+			PrintWriter out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())));
+			
+			out.println("GET /" + path + " HTTP/1.1");
+			out.println();
+			out.flush();
+
+			if (out.checkError())
+				System.out.println("SSLSocketClient: java.io.PrintWriter error");*/
+
+			/* Leer respuesta */
+		/*	BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+			String inputLine;
+
+			while ((inputLine = in.readLine()) != null)
+				System.out.println(inputLine);
+
+			in.close();
+			out.close();
+			socket.close();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+    }
+
+
+
+    private static void recuperarDocumento(){
+        System.out.println("Recuperando el documento...");
+    }
+*/
