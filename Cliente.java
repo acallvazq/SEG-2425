@@ -109,10 +109,6 @@ public class Cliente {
 
 			SSLSocketFactory factory = context.getSocketFactory();
 			SSLSocket socket = (SSLSocket) factory.createSocket(host, port);
-				
-			String[] cipherSuites = factory.getSupportedCipherSuites();
-
-			for (int i=0; i<cipherSuites.length; i++);//System.out.println (cipherSuites[i]);
 
 			System.out.println ("Comienzo SSL Handshake");
 
@@ -129,12 +125,20 @@ public class Cliente {
 			if (idOperacion == 1){
 				String pathFile = preguntaUsuario("Introduce el directorio del archivo que deseas enviar: ");
 
+				String entryAlias = "client1";
+
 				SSLSession session = socket.getSession();
-        		java.security.cert.Certificate[] localcerts = session.getLocalCertificates();
 				java.security.cert.Certificate[] remotecerts = session.getPeerCertificates();
 
-				// java.security.cert.Certificate localCert = localcerts[0];
+				java.security.cert.Certificate localCert = ks.getCertificate(entryAlias);
 				java.security.cert.Certificate remoteCert = remotecerts[0];
+
+				PrivateKey privateKey = (PrivateKey) ks.getKey(entryAlias, contrasinal.toCharArray());
+
+				if (privateKey == null) {
+					System.out.println("No se ha encontrado la clave privada");
+					System.exit(-1);
+				}
 
 				MensajeRegistrarDocumento mensaje = new MensajeRegistrarDocumento();
 
@@ -160,16 +164,30 @@ public class Cliente {
 
 				mensaje.setClaveSimetricaCifrada(claveSimetricaCifrada);
 
-				// mensaje.setCertificado(localCert);
+				mensaje.setCertificadoFirmaC(localCert.getEncoded());
+
+				byte[] firmaDocumento = MensajeRegistrarDocumento.firmarDocumento(new FileInputStream(pathFile), privateKey);
+
+				mensaje.setFirmaDocumento(firmaDocumento);
 
 				System.out.println("Registrando documento...");
 
-
 				out.println("GET " + pathFile  + " "  + " HTTP/1.0");
-				out.println();
+				try {
+					int length = mensaje.convertToBytes(mensaje).length;
+					out.print("Content-Length: " + length +
+							"\r\n");
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				out.print("Content-Type: text/html\r\n\r\n");
+
 				out.flush();
 
 				System.out.println("GET " + pathFile + " " + "HTTP/1.0");
+				
+				outObj.writeObject(mensaje);
+				outObj.flush();
 			}
 			else{
 				
@@ -273,7 +291,7 @@ public class Cliente {
         // Generarla
         String algoritmo = "AES";
         KeyGenerator kgen = KeyGenerator.getInstance(algoritmo);
-		int longclave = 128;
+		int longclave = 196;
         kgen.init(longclave);
 
         SecretKey skey = kgen.generateKey();

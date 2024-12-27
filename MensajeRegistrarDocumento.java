@@ -3,16 +3,22 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.Cipher;
 import java.security.PublicKey;
+import java.security.PrivateKey;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.IOException;
+import java.security.AlgorithmParameters;
+import java.security.Signature;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutputStream;
 
 class MensajeRegistrarDocumento implements Serializable {
 
     private byte[] nombreDocumento;
     private byte[] documentoCifrado;
     private byte[] claveSimetricaCifrada;
-    private byte[] parametrosCifrado;
+    private static byte[] parametrosCifrado;
     private byte[] firmaDocumento;
     private byte[] certificadoFirmaC;
     private byte[] certificadoCifradoC;
@@ -43,12 +49,12 @@ class MensajeRegistrarDocumento implements Serializable {
         this.claveSimetricaCifrada = claveSimetricaCifrada;
     }
 
-    public byte[] getParametrosCifrado() {
-        return parametrosCifrado;
+    public static byte[] getParametrosCifrado() {
+        return MensajeRegistrarDocumento.parametrosCifrado;
     }
 
-    public void setParametrosCifrado(byte[] parametrosCifrado) {
-        this.parametrosCifrado = parametrosCifrado;
+    public static void setParametrosCifrado(byte[] parametrosCifrado) {
+        MensajeRegistrarDocumento.parametrosCifrado = parametrosCifrado;
     }
 
     public byte[] getFirmaDocumento() {
@@ -78,14 +84,11 @@ class MensajeRegistrarDocumento implements Serializable {
     public static byte[] cifrarDocumento(FileInputStream documento, byte[] claveSimetrica) {
 
         try {
-            byte bloqueclaro[] = new byte[2024];
-            byte bloquecifrado[] = new byte[2048];
+            byte[] bloqueclaro = new byte[2024];
+            byte[] bloquecifrado = new byte[2048];
             String algoritmo = "AES";
             String transformacion = "/CBC/PKCS5Padding";
-            int longclave = 128;
-            int longbloque;
-            int i;
-            double lf;                      // longitud del fichero
+            int longbloque;                   // longitud del fichero
 
             FileOutputStream documentoCifrado = new FileOutputStream("./documento_cifrado.txt");
 
@@ -96,13 +99,7 @@ class MensajeRegistrarDocumento implements Serializable {
 
             cifrador.init(Cipher.ENCRYPT_MODE, ks);
 
-            i = 0;
-            lf = 0;
-
             while ((longbloque = documento.read(bloqueclaro)) > 0) {
-                i++;
-
-                lf = lf + longbloque;
 
                 bloquecifrado = cifrador.update(bloqueclaro, 0, longbloque);
 
@@ -116,6 +113,11 @@ class MensajeRegistrarDocumento implements Serializable {
             documentoCifrado.close();
             documento.close();
 
+            AlgorithmParameters param = AlgorithmParameters.getInstance(algoritmo);
+            param = cifrador.getParameters();
+
+            MensajeRegistrarDocumento.setParametrosCifrado(param.getEncoded());
+
             return Cliente.getBytes("./documento_cifrado.txt");
         } catch (Exception e) {
             e.printStackTrace();
@@ -127,15 +129,13 @@ class MensajeRegistrarDocumento implements Serializable {
     public static byte[] cifrarClaveSimetrica(byte[] claveSimetrica, PublicKey clavePublica) {
 
         try {
-            String provider = "SunJCE";
             String algoritmo                = "RSA";
             String transformacion = "/ECB/OAEPPadding"; // Este relleno tiene una longitud mayor y es variable
             int longclave                   = 1024;       // NOTA -- Probar a subir este valor e ir viendo como
 
-            int longbloque;
-            double lf = 0;                              // longitud del fichero
-            byte bloqueclaro[] = new byte[longclave/8];
-            byte bloquecifrado[] = new byte[512];
+            int longbloque;                            // longitud del fichero
+            byte[] bloqueclaro = new byte[longclave/8];
+            byte[] bloquecifrado = new byte[512];
 
             Cipher cifrador = Cipher.getInstance(algoritmo + transformacion);
 
@@ -168,6 +168,43 @@ class MensajeRegistrarDocumento implements Serializable {
         }
 
     }
+
+    public static byte[] firmarDocumento(FileInputStream documento, PrivateKey clavePrivada) {
+
+        String algoritmo = "SHA1withRSA";
+
+        Signature signer = Signature.getInstance(algoritmo);
+
+		// Inicializamos el objeto para firmar
+		signer.initSign(clavePrivada);
+		
+		// Para firmar primero pasamos el hash al mensaje (metodo "update")
+		// y despues firmamos el hash (metodo sign).
+
+		byte[] firma = null;
+		
+        int longbloque, filesize;
+		byte   		bloque[]         = new byte[1512];
+
+		while ((longbloque = documento.read(bloque)) > 0) {
+			filesize = filesize + longbloque;    		     
+			signer.update(bloque,0,longbloque);
+		}  
+
+		firma = signer.sign();
+
+        documento.close();
+        return firma;
+
+    }
+
+    public byte[] convertToBytes(Object object) throws IOException {
+    try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+         ObjectOutputStream out = new ObjectOutputStream(bos)) {
+        out.writeObject(object);
+        return bos.toByteArray();
+    } 
+}
 
 }
 

@@ -1,0 +1,3 @@
+class MensajeRegistrarDocumento implements Serializable {
+    
+}
