@@ -7,6 +7,8 @@ import javax.crypto.*;
 import javax.crypto.spec.*;
 import java.security.AlgorithmParameters;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
 
 public class Cliente {
     //Atributos y constantes
@@ -86,8 +88,96 @@ public class Cliente {
         iniciarConexionTLS(host,port, 1);
     }
 
+	private static void iniciarConexionTLS(String host, int port, int idOperacion) {
+		try {
+			System.out.println("Crear socket");
+			SSLContext context = SSLContext.getInstance("TLS");
+			KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+			KeyStore ks = KeyStore.getInstance("JCEKS");
 
-    private static void iniciarConexionTLS(String host, int port, int idOperacion){
+			ks.load(new FileInputStream(Cliente.ficheroKeyStore), contrasinal.toCharArray());
+			kmf.init(ks, contrasinal.toCharArray());
+			context.init(kmf.getKeyManagers(), null, null);
+
+			SSLSocketFactory factory = context.getSocketFactory();
+			SSLSocket socket = (SSLSocket) factory.createSocket(host, port);
+
+			System.out.println("Comienzo SSL Handshake");
+			socket.startHandshake();
+			System.out.println("Fin SSL Handshake");
+
+			// Usa BufferedWriter para las cabeceras HTTP
+			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8));
+
+			FileInputStream documento = null;
+			OutputStream outputStream = null;
+
+			if (idOperacion == 1) {
+				String pathFile = preguntaUsuario("Introduce el directorio del archivo que deseas enviar: ");
+				String entryAlias = "client1";
+
+				SSLSession session = socket.getSession();
+				java.security.cert.Certificate[] remotecerts = session.getPeerCertificates();
+				java.security.cert.Certificate remoteCert = remotecerts[0];
+
+				PrivateKey privateKey = (PrivateKey) ks.getKey(entryAlias, contrasinal.toCharArray());
+				if (privateKey == null) {
+					System.out.println("No se ha encontrado la clave privada");
+					System.exit(-1);
+				}
+
+				MensajeRegistrarDocumento mensaje = new MensajeRegistrarDocumento();
+				mensaje.setNombreDocumento(pathFile.getBytes(StandardCharsets.UTF_8));
+
+				byte[] claveSimetrica = Cliente.crearClaveSimetrica();
+				documento = new FileInputStream(pathFile);
+				byte[] documentoCifrado = MensajeRegistrarDocumento.cifrarDocumento(documento, claveSimetrica);
+				byte[] claveSimetricaCifrada = MensajeRegistrarDocumento.cifrarClaveSimetrica(claveSimetrica, remoteCert.getPublicKey());
+
+				mensaje.setDocumentoCifrado(documentoCifrado);
+				mensaje.setClaveSimetricaCifrada(claveSimetricaCifrada);
+				mensaje.setCertificadoFirmaC(ks.getCertificate(entryAlias).getEncoded());
+				mensaje.setFirmaDocumento(MensajeRegistrarDocumento.firmarDocumento(documento, privateKey));
+
+				
+
+				// Construye y envía la cabecera HTTP
+				writer.write("GET " + pathFile + " HTTP/1.0\r\n");
+				writer.write("Content-Length: " + mensaje.convertToBytes(mensaje).length + "\r\n");
+				writer.write("Content-Type: text/html\r\n");
+				writer.write("\r\n");
+				writer.flush();
+
+				// Envía el objeto "mensaje" como contenido
+				outputStream = socket.getOutputStream();
+				outputStream.write(mensaje.convertToBytes(mensaje));
+				outputStream.flush();
+
+			}
+
+			// Lee la respuesta del servidor
+			BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+			String inputLine;
+			while ((inputLine = in.readLine()) != null) {
+				System.out.println(inputLine);
+			}
+
+           in.close();
+		   writer.close();
+		   if(documento != null)
+		   	documento.close();
+		   if(outputStream != null)
+		   	outputStream.close();
+           socket.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+   /* private static void iniciarConexionTLS(String host, int port, int idOperacion){
 		try{
 			// SSLSocketFactory factory = (SSLSocketFactory)SSLSocketFactory.getDefault();
 
@@ -114,13 +204,9 @@ public class Cliente {
 
 			socket.startHandshake();
 				
-			System.out.println ("Fin SSL Handshake");
+			System.out.println("Fin SSL Handshake");
 
-			ObjectOutputStream outObj = new ObjectOutputStream(socket.getOutputStream());
-			PrintWriter out = new PrintWriter(
-								new BufferedWriter(
-								new OutputStreamWriter(
-								socket.getOutputStream())));
+			ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
 
 			if (idOperacion == 1){
 				String pathFile = preguntaUsuario("Introduce el directorio del archivo que deseas enviar: ");
@@ -130,7 +216,7 @@ public class Cliente {
 				SSLSession session = socket.getSession();
 				java.security.cert.Certificate[] remotecerts = session.getPeerCertificates();
 
-				java.security.cert.Certificate localcert = ks.getCertificate(entryAlias);
+				java.security.cert.Certificate localCert = ks.getCertificate(entryAlias);
 				java.security.cert.Certificate remoteCert = remotecerts[0];
 
 				PrivateKey privateKey = (PrivateKey) ks.getKey(entryAlias, contrasinal.toCharArray());
@@ -164,43 +250,38 @@ public class Cliente {
 
 				mensaje.setClaveSimetricaCifrada(claveSimetricaCifrada);
 
-				mensaje.setCertificado(localCert.getEncoded());
+				mensaje.setCertificadoFirmaC(localCert.getEncoded());
 
-				byte[] firmaDocumento = MensajeRegistrarDocumento.firmarDocumento(documento, privateKey);
+				byte[] firmaDocumento = MensajeRegistrarDocumento.firmarDocumento(new FileInputStream(pathFile), privateKey);
 
 				mensaje.setFirmaDocumento(firmaDocumento);
 
 				System.out.println("Registrando documento...");
 
-				out.println("GET " + pathFile  + " "  + " HTTP/1.0");
+				out.writeUTF("GET " + pathFile  + " "  + "HTTP/1.0\r\n");
 				try {
-					int length = mensaje.convertToBytes().length;
-					out.print("Content-Length: " + length +
+					int length = mensaje.convertToBytes(mensaje).length;
+					out.writeUTF("Content-Length: " + length +
 							"\r\n");
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-				out.print("Content-Type: text/html\r\n\r\n");
+				out.writeUTF("Content-Type: text/html\r\n\r\n");
+
+				out.writeObject(mensaje);
 
 				out.flush();
 
 				System.out.println("GET " + pathFile + " " + "HTTP/1.0");
 				
-				outObj.writeObject(mensaje);
-				outObj.flush();
 			}
 			else{
 				
 			}
 
-			/*
-			* Make sure there were no surprises
-			*/
-			if (out.checkError())
-				System.out.println("SSLSocketClient:  java.io.PrintWriter error");
 
 			/* Leer respuesta */
-			BufferedReader in = new BufferedReader(
+	/*		BufferedReader in = new BufferedReader(
 								new InputStreamReader(
 								socket.getInputStream()));
 
@@ -211,13 +292,12 @@ public class Cliente {
 			in.close();
 			out.close();
 			socket.close();
-			outObj.close();
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-    }
+    }*/
 
 
 	private static String preguntaUsuario(String mensaje){
@@ -286,20 +366,18 @@ public class Cliente {
 		}
 
 		try {
+			// Generarla
+			String algoritmo = "AES";
+			KeyGenerator kgen = KeyGenerator.getInstance(algoritmo);
+			int longclave = 192;
+			kgen.init(longclave);
 
+			SecretKey skey = kgen.generateKey();
 
-        // Generarla
-        String algoritmo = "AES";
-        KeyGenerator kgen = KeyGenerator.getInstance(algoritmo);
-		int longclave = 196;
-        kgen.init(longclave);
+			Cliente.claveSimetrica = skey.getEncoded();
 
-        SecretKey skey = kgen.generateKey();
-
-		Cliente.claveSimetrica = skey.getEncoded();
-
-        // Almacenarla
-        return Cliente.claveSimetrica;
+			// Almacenarla
+			return Cliente.claveSimetrica;
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new byte[0];

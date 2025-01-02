@@ -5,6 +5,7 @@ import java.security.KeyStore;
 import javax.net.*;
 import javax.net.ssl.*;
 import javax.security.cert.X509Certificate;
+import java.nio.charset.StandardCharsets;
 
 public class Servidor {
     //Atributos
@@ -57,6 +58,7 @@ public class Servidor {
     //Metodos
     private static SSLServerSocket initServerSocket(int port, boolean authClient) {
         SSLServerSocket serverSocket = null;
+        String[] cipherSuitesHabilitadas = {"A"};
 
         try{
             mensajeInicio();
@@ -77,13 +79,14 @@ public class Servidor {
 
             // Crear el SSLContext
             SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
+            sslContext.init(keyManagerFactory.getKeyManagers(), null, null);
 
             // Crear y configurar el SSLServerSocket
             SSLServerSocketFactory serverSocketFactory = sslContext.getServerSocketFactory();
             serverSocket = (SSLServerSocket) serverSocketFactory.createServerSocket(port);
             serverSocket.setNeedClientAuth(authClient);
-            serverSocket.setEnabledProtocols(new String[]{"TLSv1.3", "TLSv1.2"});
+            serverSocket.setEnabledCipherSuites(serverSocketFactory.getSupportedCipherSuites());
+            serverSocket.setEnabledProtocols(new String[]{"TLSv1.3"});
 
         }catch(Exception e){
             System.out.println(e);
@@ -130,48 +133,51 @@ public class Servidor {
     *******************************************************/
     private static class HiloCliente extends Thread {
         private final SSLSocket client;
-        private final KeyStore keyStore;
 
         public HiloCliente(SSLSocket client) {
             this.client = client;
         }
 
-        public HiloCliente(SSLSocket client, KeyStore keyStore) {
-            this.client = client;
-            this.keyStore = keyStore;
-
-        }
-
         @Override
         public void run() {
-            try{
+            try (
+                BufferedReader reader = new BufferedReader(new InputStreamReader(client.getInputStream()));
+                PrintWriter writer = new PrintWriter(client.getOutputStream(), true)
+            ) {
                 String clientIP = client.getInetAddress().getHostAddress();
                 int clientPort = client.getPort();
 
-                switch(line.substring(0,3)){
-                    case "GET"
+                StringBuilder request = new StringBuilder();
+                String line;
+
+                // Leer la petición completa
+                while ((line = reader.readLine()) != null && !line.isEmpty()) {
+                    request.append(line).append("\r\n");
                 }
 
+                System.out.println("Cliente [" + clientIP + ":" + clientPort + "]:\r\n" + request);
 
-            }catch(Exception e){
-                System.out.println(e);
-            }
+                String method = request.substring(0, 3);
+                switch (method) {
+                    case "GET":
+                        System.out.println("Procesando solicitud GET");
+                        ObjectInputStream ois = new ObjectInputStream(client.getInputStream());
+                        getDocumento(ois, writer);
+                        ois.close();
+                        break;
 
-            /*try (BufferedReader reader = new BufferedReader(new InputStreamReader(client.getInputStream()));
-                PrintWriter writer = new PrintWriter(client.getOutputStream(), true)) {
+                    case "PUT":
+                        System.out.println("Procesando solicitud PUT");
+                        writer.println("Respuesta del servidor: Solicitud PUT procesada");
+                        break;
 
-                writer.println("Conexión segura establecida.");
-
-                String clientIP = client.getInetAddress().getHostAddress();
-                int clientPort = client.getPort();
-
-                // Leer y responder al cliente
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    System.out.println("Cliente [" + clientIP + ":" + clientPort + "]: " + line);
-                    writer.println("Servidor: " + line); // Respuesta eco
+                    default:
+                        System.out.println("Solicitud desconocida");
+                        writer.println("Error: Método desconocido");
+                        break;
                 }
             } catch (IOException e) {
+                e.printStackTrace();
                 System.err.println("Error al manejar el cliente: " + e.getMessage());
             } finally {
                 try {
@@ -179,7 +185,34 @@ public class Servidor {
                 } catch (IOException e) {
                     System.err.println("Error al cerrar el socket del cliente: " + e.getMessage());
                 }
-            }*/
+            }
+        }
+
+        private void getDocumento(ObjectInputStream ois, PrintWriter writer){
+            try{
+                MensajeRegistrarDocumento mensaje = (MensajeRegistrarDocumento) ois.readObject();
+
+                String nombreDocumento = new String(mensaje.getNombreDocumento(), StandardCharsets.UTF_8);
+
+                //El path está vacio
+                if(nombreDocumento.equals("")){
+                    writer.println("HTTP/1.0 403 Forbidden\r\n");
+                }
+
+                //no encuentra el archivo en la carpeta
+                if(archivo.size == 0){
+                    writer.println("HTTP/1.0 404 Not Found\r\n");
+                }
+
+                System.out.println("Recibido: " + nombreDocumento);
+            }catch(Exception e){
+                System.out.println(e);
+            }
+            
+
+
+            //Leer documento y guardarlo en la carpeta de documentos del servidor (cp origen destino)
+            writer.println("HTTP/1.0 200 OK\r\n");
         }
     }
 }

@@ -111,7 +111,6 @@ class MensajeRegistrarDocumento implements Serializable {
             documentoCifrado.write(bloquecifrado);
 
             documentoCifrado.close();
-            documento.close();
 
             AlgorithmParameters param = AlgorithmParameters.getInstance(algoritmo);
             param = cifrador.getParameters();
@@ -173,28 +172,35 @@ class MensajeRegistrarDocumento implements Serializable {
 
         String algoritmo = "SHA1withRSA";
 
-        Signature signer = Signature.getInstance(algoritmo);
+        try {
+            Signature signer = Signature.getInstance(algoritmo);
 
-		// Inicializamos el objeto para firmar
-		signer.initSign(clavePrivada);
-		
-		// Para firmar primero pasamos el hash al mensaje (metodo "update")
-		// y despues firmamos el hash (metodo sign).
+            // Inicializamos el objeto para firmar
+            signer.initSign(clavePrivada);
+            
+            // Para firmar primero pasamos el hash al mensaje (metodo "update")
+            // y despues firmamos el hash (metodo sign).
 
-		byte[] firma = null;
-		
-        int longbloque, filesize;
-		byte   		bloque[]         = new byte[1512];
+            byte[] firma = null;
+            
+            int longbloque, filesize;
+            byte   		bloque[]         = new byte[1512];
 
-		while ((longbloque = documento.read(bloque)) > 0) {
-			filesize = filesize + longbloque;    		     
-			signer.update(bloque,0,longbloque);
-		}  
+            filesize = 0;
 
-		firma = signer.sign();
+            while ((longbloque = documento.read(bloque)) > 0) {
+                filesize = filesize + longbloque;    		     
+                signer.update(bloque,0,longbloque);
+            }  
 
-        documento.close();
-        return firma;
+            firma = signer.sign();
+
+            //documento.close();
+            return firma;
+        } catch(Exception e) {
+            e.printStackTrace();
+            return new byte[0];
+        }
 
     }
 

@@ -190,7 +190,7 @@ public class ClienteAutenticado {
 	 *****************************************************/
     
 	private static void definirKeyStores() {
-        
+       
 
 		// Almacen de credenciales
 

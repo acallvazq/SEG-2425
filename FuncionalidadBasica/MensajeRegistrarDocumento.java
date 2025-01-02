@@ -7,6 +7,11 @@ import java.security.PrivateKey;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.IOException;
+import java.security.AlgorithmParameters;
+import java.security.Signature;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutputStream;
 
 class MensajeRegistrarDocumento implements Serializable {
 
@@ -106,7 +111,6 @@ class MensajeRegistrarDocumento implements Serializable {
             documentoCifrado.write(bloquecifrado);
 
             documentoCifrado.close();
-            documento.close();
 
             AlgorithmParameters param = AlgorithmParameters.getInstance(algoritmo);
             param = cifrador.getParameters();
@@ -166,29 +170,41 @@ class MensajeRegistrarDocumento implements Serializable {
 
     public static byte[] firmarDocumento(FileInputStream documento, PrivateKey clavePrivada) {
 
-        Signature signer = Signature.getInstance(algoritmo);
+        String algoritmo = "SHA1withRSA";
 
-		// Inicializamos el objeto para firmar
-		signer.initSign(privateKey);
-		
-		// Para firmar primero pasamos el hash al mensaje (metodo "update")
-		// y despues firmamos el hash (metodo sign).
+        try {
+            Signature signer = Signature.getInstance(algoritmo);
 
-		byte[] firma = null;
-		
-		while ((longbloque = documento.read(bloque)) > 0) {
-			filesize = filesize + longbloque;    		     
-			signer.update(bloque,0,longbloque);
-		}  
+            // Inicializamos el objeto para firmar
+            signer.initSign(clavePrivada);
+            
+            // Para firmar primero pasamos el hash al mensaje (metodo "update")
+            // y despues firmamos el hash (metodo sign).
 
-		firma = signer.sign();
+            byte[] firma = null;
+            
+            int longbloque, filesize;
+            byte   		bloque[]         = new byte[1512];
 
-        documento.close();
-        return firma;
+            filesize = 0;
+
+            while ((longbloque = documento.read(bloque)) > 0) {
+                filesize = filesize + longbloque;    		     
+                signer.update(bloque,0,longbloque);
+            }  
+
+            firma = signer.sign();
+
+            //documento.close();
+            return firma;
+        } catch(Exception e) {
+            e.printStackTrace();
+            return new byte[0];
+        }
 
     }
 
-    private byte[] convertToBytes(Object object) throws IOException {
+    public byte[] convertToBytes(Object object) throws IOException {
     try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
          ObjectOutputStream out = new ObjectOutputStream(bos)) {
         out.writeObject(object);
