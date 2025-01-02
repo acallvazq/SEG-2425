@@ -125,6 +125,45 @@ class MensajeRegistrarDocumento implements Serializable {
 
     }
 
+    public static byte[] descifrarDocumento(byte[] documento, byte[] claveSimetrica) {
+
+        try {
+            byte[] bloqueclaro = new byte[2024];
+            byte[] bloquecifrado = new byte[2048];
+            String algoritmo = "AES";
+            String transformacion = "/CBC/PKCS5Padding";
+            int longbloque;                   // longitud del fichero
+
+            FileOutputStream documentoDescifrado = new FileOutputStream("./documento_descifrado.txt");
+
+            SecretKeySpec ks = new SecretKeySpec(claveSimetrica, algoritmo);
+
+            /** --- Descifrado --- */
+            Cipher cifrador = Cipher.getInstance(algoritmo + transformacion);
+
+            cifrador.init(Cipher.DECRYPT_MODE, ks);
+
+            while ((longbloque = documento.read(bloquecifrado)) > 0) {
+
+                bloqueclaro = cifrador.update(bloquecifrado, 0, longbloque);
+
+                documentoDescifrado.write(bloqueclaro);
+
+            }
+
+            bloqueclaro = cifrador.doFinal();
+            documentoDescifrado.write(bloqueclaro);
+
+            documentoDescifrado.close();
+
+            return Cliente.getBytes("./documento_descifrado.txt");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new byte[0];
+        }
+
+    }
+
     public static byte[] cifrarClaveSimetrica(byte[] claveSimetrica, PublicKey clavePublica) {
 
         try {
@@ -198,6 +237,41 @@ class MensajeRegistrarDocumento implements Serializable {
             //documento.close();
             return firma;
         } catch(Exception e) {
+            e.printStackTrace();
+            return new byte[0];
+        }
+
+    }
+
+    public static PublicKey descifrarClaveSimetrica(byte[] claveSimetricaCifrada, PrivateKey clavePrivada) {
+
+        try {
+            String algoritmo = "RSA";
+            String transformacion = "/ECB/OAEPPadding";
+            int longbloque;                   // longitud del fichero
+            byte[] bloqueclaro = new byte[512];
+            byte[] bloquecifrado = new byte[512];
+
+            Cipher cifrador = Cipher.getInstance(algoritmo + transformacion);
+
+            cifrador.init(Cipher.DECRYPT_MODE, clavePrivada);
+
+            FileOutputStream claveSimetricaDescifradaOutputFile = new FileOutputStream("./clave_simetrica_descifrada.txt");
+
+            while ((longbloque = claveSimetricaCifrada.read(bloquecifrado)) > 0) {
+                bloqueclaro = cifrador.update(bloquecifrado, 0, longbloque);
+                bloqueclaro = cifrador.doFinal();
+                claveSimetricaDescifradaOutputFile.write(bloqueclaro);
+            }
+
+            claveSimetricaDescifradaOutputFile.close();
+
+            byte[] clave_simetrica_descifrada = Cliente.getBytes("./clave_simetrica_descifrada.txt");
+
+            new File("./clave_simetrica_descifrada.txt").delete();
+
+            return clave_simetrica_descifrada;
+        } catch (Exception e) {
             e.printStackTrace();
             return new byte[0];
         }

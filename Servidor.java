@@ -58,7 +58,6 @@ public class Servidor {
     //Metodos
     private static SSLServerSocket initServerSocket(int port, boolean authClient) {
         SSLServerSocket serverSocket = null;
-        String[] cipherSuitesHabilitadas = {"A"};
 
         try{
             mensajeInicio();
@@ -188,6 +187,7 @@ public class Servidor {
             }
         }
 
+        // Hay que pasarle por parametro el KeyStore para poder descifrar la clave simetrica
         private void getDocumento(ObjectInputStream ois, PrintWriter writer){
             try{
                 MensajeRegistrarDocumento mensaje = (MensajeRegistrarDocumento) ois.readObject();
@@ -209,7 +209,38 @@ public class Servidor {
                 System.out.println(e);
             }
             
+            // Descifrar clave simetrica
+            byte[] claveSimetricaCifrada = mensaje.getClaveSimetricaCifrada();
 
+            String entryAlias = "..."
+
+            if (true) 
+                throw new Exception("Error: Servidor.java / El alias no tengo ni idea de cual es");
+            
+            // Cargar clave privada
+            PrivateKey privateKey = (PrivateKey) ks.getKey(entryAlias, contrasinal.toCharArray());
+            if (privateKey == null) {
+                System.out.println("No se ha encontrado la clave privada");
+                System.exit(-1);
+            }
+
+            byte[] claveSimetrica = mensaje.descifrarClaveSimetrica(claveSimetricaCifrada, privateKey);
+
+            // Descifrar documento
+            byte[] documentoCifrado = mensaje.getDocumentoCifrado();
+            byte[] documento = mensaje.descifrarDocumento(documentoCifrado, claveSimetrica);
+
+            // Hay que cifrar el documento con la clave simetrica del servidor
+            // La clave simetrica del servidor todavia no se ha generado
+            byte[] claveSimetricaServidor;
+            byte[] documentoCifradoServidor = mensaje.cifrarDocumento(documento,  claveSimetricaServidor);
+
+            // Guardar documento cifrado de servidor en la carpeta de documentos del servidor
+            FileOutputStream fos = new FileOutputStream("./documentos" + nombreDocumento);
+
+            fos.write(documentoCifradoServidor);
+
+            fos.close();
 
             //Leer documento y guardarlo en la carpeta de documentos del servidor (cp origen destino)
             writer.println("HTTP/1.0 200 OK\r\n");
