@@ -1,17 +1,22 @@
 import java.io.*;
 import java.net.*;
 import java.security.KeyStore;
-
+import java.security.*;
+import javax.crypto.*;
 import javax.net.*;
 import javax.net.ssl.*;
 import javax.security.cert.X509Certificate;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 
 public class Servidor {
     //Atributos
     private static String raiz = "./keyStoreServidor/";
     private static int DefaultServerPort = 9001;
     private static final String contrasinal = "criptonika";
+    private static KeyStore ks;
+
+    private static final ArrayList<String> docPaths = new ArrayList<String>();
 
     //Clases
     public static void main(String[] args){
@@ -64,10 +69,10 @@ public class Servidor {
 
             // Inicializa el KeyStore y crea el KeyManagerFactory
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
-            KeyStore keyStore = KeyStore.getInstance("JCEKS");
+            Servidor.ks = KeyStore.getInstance("JCEKS");
             FileInputStream keyStoreStream = new FileInputStream(raiz + "/keyStoreServer.jce");
-            keyStore.load(keyStoreStream, contrasinal.toCharArray());
-            keyManagerFactory.init(keyStore, contrasinal.toCharArray());
+            Servidor.ks.load(keyStoreStream, contrasinal.toCharArray());
+            keyManagerFactory.init(Servidor.ks, contrasinal.toCharArray());
             
             // Inicializa el TrustStore y crea el TrustManagerFactory
             TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
@@ -167,12 +172,14 @@ public class Servidor {
 
                     case "PUT":
                         System.out.println("Procesando solicitud PUT");
-                        writer.println("Respuesta del servidor: Solicitud PUT procesada");
+                        ObjectInputStream ois2 = new ObjectInputStream(client.getInputStream());
+                        putDocumento(ois2, writer);
+                        ois2.close();
                         break;
 
                     default:
                         System.out.println("Solicitud desconocida");
-                        writer.println("Error: Método desconocido");
+                        writer.println("HTTP/1.0 405 Method Not Allowed\r\n");
                         break;
                 }
             } catch (IOException e) {
@@ -187,7 +194,6 @@ public class Servidor {
             }
         }
 
-        // Hay que pasarle por parametro el KeyStore para poder descifrar la clave simetrica
         private void getDocumento(ObjectInputStream ois, PrintWriter writer){
             try{
                 MensajeRegistrarDocumento mensaje = (MensajeRegistrarDocumento) ois.readObject();
@@ -200,50 +206,106 @@ public class Servidor {
                 }
 
                 //no encuentra el archivo en la carpeta
-                if(archivo.size == 0){
-                    writer.println("HTTP/1.0 404 Not Found\r\n");
-                }
+                // if(archivo.size == 0){
+                //     writer.println("HTTP/1.0 404 Not Found\r\n");
+                // }
 
                 System.out.println("Recibido: " + nombreDocumento);
+            
+                // Verificar firma
+                byte[] firma = mensaje.getFirmaDocumento();
+
+                // SSLSession session = socket.getSession();
+				// java.security.cert.Certificate[] remotecerts = session.getPeerCertificates();
+				// java.security.cert.Certificate remoteCert = remotecerts[0];
+
+                // mensaje.verificarFirma(remoteCert.getPublicKey(), firma, mensaje.getDocumentoCifrado());
+
+                // Descifrar clave simetrica
+                byte[] claveSimetricaCifrada = mensaje.getClaveSimetricaCifrada();
+
+                String entryAlias = "servertls";
+
+                // Cargar clave privada
+                PrivateKey privateKey = (PrivateKey) Servidor.ks.getKey(entryAlias, contrasinal.toCharArray());
+                if (privateKey == null) {
+                    System.out.println("No se ha encontrado la clave privada");
+                    System.exit(-1);
+                }
+
+                FileOutputStream fileOutputClaveSimetricaCifrada = new FileOutputStream("./clave_simetrica_cifrada.temp");
+
+                fileOutputClaveSimetricaCifrada.write(claveSimetricaCifrada);
+                fileOutputClaveSimetricaCifrada.close();
+
+                FileInputStream fileInputClaveSimetricaCifrada = new FileInputStream("./clave_simetrica_cifrada.temp");
+
+                byte[] claveSimetrica = mensaje.descifrarClaveSimetrica(fileInputClaveSimetricaCifrada , privateKey);
+
+                fileInputClaveSimetricaCifrada.close();
+                new File("./clave_simetrica_cifrada.temp").delete();
+
+                // Descifrar documento
+                byte[] documentoCifrado = mensaje.getDocumentoCifrado();
+
+                FileOutputStream fileOutputDocumentoCifrado = new FileOutputStream("./documento_cifrado.temp");
+
+                fileOutputDocumentoCifrado.write(documentoCifrado);
+                fileOutputDocumentoCifrado.close();
+
+                FileInputStream fileInputDocumentoCifrado = new FileInputStream("./documento_cifrado.temp");
+
+                byte[] documento = mensaje.descifrarDocumento(fileInputDocumentoCifrado, claveSimetrica);
+
+                fileInputDocumentoCifrado.close();
+                new File("./documento_cifrado.temp").delete();
+
+                FileOutputStream fileOutputDocumento = new FileOutputStream("./documento_sin_cifrar.temp");
+
+                fileOutputDocumento.write(documento);
+                fileOutputDocumento.close();
+
+                FileInputStream fileInputDocumento = new FileInputStream("./documento_sin_cifrar.temp");
+
+                // Hay que cifrar el documento con la clave simetrica del servidor
+                // La clave simetrica del servidor todavia no se ha generado
+
+                SecretKey serverKey = (SecretKey) Servidor.ks.getKey("secreto", contrasinal.toCharArray());
+
+                byte[] claveSimetricaServidor = serverKey.getEncoded();
+                byte[] documentoCifradoServidor = mensaje.cifrarDocumento(fileInputDocumento,  claveSimetricaServidor);
+
+                fileInputDocumento.close();
+                // new File("./documento_sin_cifrar.temp").delete();
+
+                String docPath = "./documentos/" + nombreDocumento.split("/")[nombreDocumento.split("/").length - 1];
+
+                System.out.println("Guardando documento: " + docPath + " con ID:" + docPaths.size());
+
+                docPaths.add(docPath);
+
+                // Guardar documento cifrado de servidor en la carpeta de documentos del servidor
+                FileOutputStream fos = new FileOutputStream(docPath);
+
+                fos.write(documentoCifradoServidor);
+                fos.close();
+
+                //Leer documento y guardarlo en la carpeta de documentos del servidor (cp origen destino)
+                writer.println("HTTP/1.0 200 OK\r\n");
+
             }catch(Exception e){
-                System.out.println(e);
+                e.printStackTrace();
             }
-            
-            // Descifrar clave simetrica
-            byte[] claveSimetricaCifrada = mensaje.getClaveSimetricaCifrada();
+        }
 
-            String entryAlias = "..."
-
-            if (true) 
-                throw new Exception("Error: Servidor.java / El alias no tengo ni idea de cual es");
-            
-            // Cargar clave privada
-            PrivateKey privateKey = (PrivateKey) ks.getKey(entryAlias, contrasinal.toCharArray());
-            if (privateKey == null) {
-                System.out.println("No se ha encontrado la clave privada");
-                System.exit(-1);
+        private void putDocumento(ObjectInputStream ois, PrintWriter writer){
+            try {
+                MensajeRegistrarDocumento mensaje = (MensajeRegistrarDocumento) ois.readObject();
+                writer.println("HTTP/1.0 200 OK\r\n");
+            } catch (Exception e) {
+                e.printStackTrace();
             }
 
-            byte[] claveSimetrica = mensaje.descifrarClaveSimetrica(claveSimetricaCifrada, privateKey);
-
-            // Descifrar documento
-            byte[] documentoCifrado = mensaje.getDocumentoCifrado();
-            byte[] documento = mensaje.descifrarDocumento(documentoCifrado, claveSimetrica);
-
-            // Hay que cifrar el documento con la clave simetrica del servidor
-            // La clave simetrica del servidor todavia no se ha generado
-            byte[] claveSimetricaServidor;
-            byte[] documentoCifradoServidor = mensaje.cifrarDocumento(documento,  claveSimetricaServidor);
-
-            // Guardar documento cifrado de servidor en la carpeta de documentos del servidor
-            FileOutputStream fos = new FileOutputStream("./documentos" + nombreDocumento);
-
-            fos.write(documentoCifradoServidor);
-
-            fos.close();
-
-            //Leer documento y guardarlo en la carpeta de documentos del servidor (cp origen destino)
-            writer.println("HTTP/1.0 200 OK\r\n");
         }
     }
 }

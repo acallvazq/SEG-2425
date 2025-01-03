@@ -2,6 +2,7 @@ import java.io.Serializable;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
 import java.security.PublicKey;
 import java.security.PrivateKey;
 import java.io.FileInputStream;
@@ -12,13 +13,14 @@ import java.security.AlgorithmParameters;
 import java.security.Signature;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
+import java.io.File;
 
 class MensajeRegistrarDocumento implements Serializable {
 
     private byte[] nombreDocumento;
     private byte[] documentoCifrado;
     private byte[] claveSimetricaCifrada;
-    private static byte[] parametrosCifrado;
+    private byte[] parametrosCifrado;
     private byte[] firmaDocumento;
     private byte[] certificadoFirmaC;
     private byte[] certificadoCifradoC;
@@ -49,12 +51,12 @@ class MensajeRegistrarDocumento implements Serializable {
         this.claveSimetricaCifrada = claveSimetricaCifrada;
     }
 
-    public static byte[] getParametrosCifrado() {
-        return MensajeRegistrarDocumento.parametrosCifrado;
+    public byte[] getParametrosCifrado() {
+        return parametrosCifrado;
     }
 
-    public static void setParametrosCifrado(byte[] parametrosCifrado) {
-        MensajeRegistrarDocumento.parametrosCifrado = parametrosCifrado;
+    public void setParametrosCifrado(byte[] parametrosCifrado) {
+        this.parametrosCifrado = parametrosCifrado;
     }
 
     public byte[] getFirmaDocumento() {
@@ -81,7 +83,7 @@ class MensajeRegistrarDocumento implements Serializable {
         this.certificadoCifradoC = certificadoCifradoC;
     }
 
-    public static byte[] cifrarDocumento(FileInputStream documento, byte[] claveSimetrica) {
+    public byte[] cifrarDocumento(FileInputStream documento, byte[] claveSimetrica) {
 
         try {
             byte[] bloqueclaro = new byte[2024];
@@ -115,7 +117,7 @@ class MensajeRegistrarDocumento implements Serializable {
             AlgorithmParameters param = AlgorithmParameters.getInstance(algoritmo);
             param = cifrador.getParameters();
 
-            MensajeRegistrarDocumento.setParametrosCifrado(param.getEncoded());
+            this.setParametrosCifrado(param.getEncoded());
 
             return Cliente.getBytes("./documento_cifrado.txt");
         } catch (Exception e) {
@@ -125,7 +127,7 @@ class MensajeRegistrarDocumento implements Serializable {
 
     }
 
-    public static byte[] descifrarDocumento(byte[] documento, byte[] claveSimetrica) {
+    public byte[] descifrarDocumento(FileInputStream documento, byte[] claveSimetrica) {
 
         try {
             byte[] bloqueclaro = new byte[2024];
@@ -139,14 +141,17 @@ class MensajeRegistrarDocumento implements Serializable {
             SecretKeySpec ks = new SecretKeySpec(claveSimetrica, algoritmo);
 
             /** --- Descifrado --- */
-            Cipher cifrador = Cipher.getInstance(algoritmo + transformacion);
+            Cipher cifrador = Cipher.getInstance(algoritmo + transformacion, "SunJCE");
+           
+            AlgorithmParameters params = AlgorithmParameters.getInstance(algoritmo,"SunJCE");     
 
-            cifrador.init(Cipher.DECRYPT_MODE, ks);
+            params.init(this.getParametrosCifrado());
+
+            cifrador.init(Cipher.DECRYPT_MODE, ks, params);
 
             while ((longbloque = documento.read(bloquecifrado)) > 0) {
 
                 bloqueclaro = cifrador.update(bloquecifrado, 0, longbloque);
-
                 documentoDescifrado.write(bloqueclaro);
 
             }
@@ -243,7 +248,32 @@ class MensajeRegistrarDocumento implements Serializable {
 
     }
 
-    public static PublicKey descifrarClaveSimetrica(byte[] claveSimetricaCifrada, PrivateKey clavePrivada) {
+    // public static boolean verificarFirma(PublicKey publicKey, byte[] firma, FileInputStream documento) {
+
+    //     String algoritmo        =  "MD5withRSA"; // Algoritmo de firma
+    //     String algoritmo_base   =  "RSA";  
+        
+    //     Signature verifier = Signature.getInstance(algoritmo);	 
+
+    //     EncodedKeySpec keySpec;
+	//     if (publicKey.getFormat().equals("X.509"))
+	// 	    keySpec = new X509EncodedKeySpec (publicKey.getEncoded());
+	//     else
+	// 	    keySpec = new PKCS8EncodedKeySpec(publicKey.getEncoded());
+
+    //     keyFactory = KeyFactory.getInstance(algoritmo_base);
+    //     PublicKey  publicKey2 = keyFactory.generatePublic(keySpec);
+
+    //     verifier.initVerify(publicKey2);
+
+    //     while ((longbloque = documento.read(bloque)) > 0) {		     
+    // 	    verifier.update(bloque,0,longbloque);
+    //     }  
+
+    //     return verifier.verify(firma);
+    // }
+
+    public static byte[] descifrarClaveSimetrica(FileInputStream claveSimetricaCifrada, PrivateKey clavePrivada) {
 
         try {
             String algoritmo = "RSA";
@@ -256,7 +286,7 @@ class MensajeRegistrarDocumento implements Serializable {
 
             cifrador.init(Cipher.DECRYPT_MODE, clavePrivada);
 
-            FileOutputStream claveSimetricaDescifradaOutputFile = new FileOutputStream("./clave_simetrica_descifrada.txt");
+            FileOutputStream claveSimetricaDescifradaOutputFile = new FileOutputStream("./clave_simetrica_descifrada.temp");
 
             while ((longbloque = claveSimetricaCifrada.read(bloquecifrado)) > 0) {
                 bloqueclaro = cifrador.update(bloquecifrado, 0, longbloque);
@@ -266,9 +296,9 @@ class MensajeRegistrarDocumento implements Serializable {
 
             claveSimetricaDescifradaOutputFile.close();
 
-            byte[] clave_simetrica_descifrada = Cliente.getBytes("./clave_simetrica_descifrada.txt");
+            byte[] clave_simetrica_descifrada = Cliente.getBytes("./clave_simetrica_descifrada.temp");
 
-            new File("./clave_simetrica_descifrada.txt").delete();
+            new File("./clave_simetrica_descifrada.temp").delete();
 
             return clave_simetrica_descifrada;
         } catch (Exception e) {
