@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 
 public class Cliente {
     //Atributos y constantes
-    private static String raiz;
+    private static String raiz = "./keyStoreCliente/";
     private static String ficheroKeyStore;
     private static String ficheroTrustStore;
     private static String contrasinal;
@@ -26,18 +26,19 @@ public class Cliente {
 		int port = 2080;
         
         // Comprueba los argumentos
-		if (args.length != 4) {
-			System.out.println("USAGE: java Cliente keyStoreFile truststoreFile contraseñaKeystore IpOCSPResponder");
+		if (args.length > 4 || args.length  != 3) {
+			System.out.println("USAGE: java Cliente keyStoreFile truststoreFile contraseñaKeystore [IpOCSPResponder]");
 			System.exit(-1);
 		}
 		contrasinal = args[2];
-		IpOCSPResponder = args[3];
+		if(args.length == 4){
+			IpOCSPResponder = args[3];
+		}
+		
 
 		//Directorio de trabajo
-		raiz = System.getProperty("user.dir");
-		raizAlmacenes = raiz + "/keyStoreCliente/";
-		ficheroKeyStore = raizAlmacenes + args[0];
-        ficheroTrustStore = raizAlmacenes + args[1];
+		ficheroKeyStore = raiz + args[0];
+        ficheroTrustStore = raiz + args[1];
 
 		definirKeyStores();
 		//iniciarConexionTLS(host, port);

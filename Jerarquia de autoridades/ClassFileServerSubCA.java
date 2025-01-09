@@ -20,7 +20,7 @@ public class ClassFileServerSubCA extends ClassServer {
 
     private String     		docroot;
     private static int 		DefaultServerPort = 9001;
-	private static String 	raiz = "./keyStoreServidor/";
+	private static String 	raiz = "../keyStoreServidor/";
 
 	//	ks.load(new FileInputStream("c:/comun/escuela/seguridad_bolonia/practica2013/cliente/testkeys.jks"), passphrase);
 

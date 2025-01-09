@@ -63,7 +63,7 @@ import java.util.EnumSet;
 public class Cliente_autenticado_con_OCSPStaplingSubCA {
 
 
-	private static String 	raizMios  = "./keyStoreCliente/";
+	private static String 	raizMios  = "../keyStoreCliente/";
     
 	
     public static void main(String[] args) throws Exception {

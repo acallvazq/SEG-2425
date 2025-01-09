@@ -65,7 +65,7 @@ import java.util.EnumSet;
 public class ClienteAutenticadoOCSPSubCA {
 
 
-	private static String 	raizAlmacenes  = "./keyStoreCliente/";
+	private static String 	raizAlmacenes  = "../keyStoreCliente/";
 
 	
     public static void main(String[] args) throws Exception {

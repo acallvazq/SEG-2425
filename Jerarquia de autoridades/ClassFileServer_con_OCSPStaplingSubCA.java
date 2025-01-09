@@ -66,7 +66,7 @@ public class ClassFileServer_con_OCSPStaplingSubCA extends ClassServer {
     private String docroot;
 
     private static int      DefaultServerPort = 9001;
-	private static String 	raizMios     = "./keyStoreServidor/";
+	private static String 	raizMios     = "../keyStoreServidor/";
 
     /**
      * Constructs a ClassFileServer_con_OCSPStaplingSubCA.

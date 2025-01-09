@@ -12,8 +12,10 @@ import java.util.ArrayList;
 public class Servidor {
     //Atributos
     private static String raiz = "./keyStoreServidor/";
-    private static int DefaultServerPort = 9001;
-    private static final String contrasinal = "criptonika";
+    private static String ficheroKeyStore;
+    private static String ficheroTrustStore;
+    private static int DefaultServerPort = 2080;
+    private static String contrasinal;
     private static KeyStore ks;
 
     private static final ArrayList<String> docPaths = new ArrayList<String>();
@@ -24,23 +26,19 @@ public class Servidor {
         String docroot = "";
         boolean authClient = false;
         
-        if(args.length < 1 || args.length > 4){
-            System.out.println("USAGE: java Servidor " + "port [TLS] [true]");
+        // Comprueba los argumentos
+		if (args.length  != 3) {
+			System.out.println("USAGE: java Servidor keyStoreFile truststoreFile contraseñaKeystore [IpOCSPResponder]");
 			System.exit(-1);
-        }
+		}
 
-        if(args.length >= 1){
-            port = Integer.parseInt(args[0]);
-        }
-        
         String type = "PlainSocket";
-        if(args.length >= 2){
-            type = args[1];
-        }
 
-        if(args.length >= 3 && args[2].equals("true")){
-            authClient = true;
-        }
+        //Directorio de trabajo
+		ficheroKeyStore = raiz + args[0];
+        ficheroTrustStore = raiz + args[1];
+        
+        contrasinal = args[2];
 
         definirKeyStores();        
         
@@ -122,12 +120,12 @@ public class Servidor {
 	private static void definirKeyStores()
 	{
 	    // Almacen de claves	
-	    System.setProperty("javax.net.ssl.keyStore", raiz + "/keyStoreServer.jce");
+	    System.setProperty("javax.net.ssl.keyStore", ficheroKeyStore);
 	    System.setProperty("javax.net.ssl.keyStoreType", "JCEKS");
 	    System.setProperty("javax.net.ssl.keyStorePassword", contrasinal);
 	
 	    // Almacen de confianza	    
-	    System.setProperty("javax.net.ssl.trustStore", raiz + "/trustStoreServer.jce");
+	    System.setProperty("javax.net.ssl.trustStore", ficheroTrustStore);
 	    System.setProperty("javax.net.ssl.trustStoreType", "JCEKS");
 	    System.setProperty("javax.net.ssl.trustStorePassword", contrasinal);
 	}

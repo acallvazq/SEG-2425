@@ -49,7 +49,7 @@ public class ClienteAutenticadoSubCAClient {
 		String[] cipherSuites = null;
 
         //Directorio de trabajo
-		raizAlmacenes = "./keyStoreCliente/";
+		raizAlmacenes = "../keyStoreCliente/";
         ficheroKeyStore = raizAlmacenes + "keyStoreClientSubCA.jce";
         ficheroTrustStore = raizAlmacenes + "trustStoreClientSubCA.jce";
         
