@@ -5,7 +5,7 @@
 ### 1. Servidor
 
 ```
-java ClassFileServer 8080 ../textosPrueba/ TLS true
+java ClassFileServer 8080 ../textosPrueba TLS true
 ```
 
 ### 2. Cliente
@@ -13,6 +13,7 @@ java ClassFileServer 8080 ../textosPrueba/ TLS true
 ```
 java ClienteAutenticadoOCSP 192.168.1.138 8080 textoclaro.txt
 ```
+Si estamos en el portatil, cambiar ip por 192.168.10.10
 
 ### 3. Iniciar OCSP responder
 
@@ -27,7 +28,7 @@ openssl ocsp -port 9080 -index db/index -rsigner root-ocsp.crt -rkey private/roo
 ### 1. Servidor
 
 ```
-java ClassFileServer_con_OCSPStapling 8080 ../textosPrueba/ TLS true
+java ClassFileServer_con_OCSPStapling 8080 ../textosPrueba TLS true
 ```
 
 ### 2. Cliente

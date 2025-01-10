@@ -130,7 +130,7 @@ public class Cliente_autenticado_con_OCSPStapling {
 			CertPathBuilder cpb = CertPathBuilder.getInstance("PKIX");
 			PKIXRevocationChecker rc = (PKIXRevocationChecker) cpb.getRevocationChecker();
 			rc.setOptions(EnumSet.of(PKIXRevocationChecker.Option.NO_FALLBACK));
-			rc.setOcspResponder(new URI("http://192.168.1.138:9080"));  // Aqui poner la ip y puerto donde se haya lanzado el OCSP Responder
+			rc.setOcspResponder(new URI("http://192.168.10.20:9080"));  // Aqui poner la ip y puerto donde se haya lanzado el OCSP Responder
 
 			//   2. Crear el truststore 
 			

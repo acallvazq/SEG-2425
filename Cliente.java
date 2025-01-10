@@ -23,7 +23,7 @@ public class Cliente {
     public static void main (String[] args){
 		String host = "127.0.0.1";
 		String raizAlmacenes;
-		int port = 2080;
+		int port = 3000;
         
         // Comprueba los argumentos
 		if (args.length > 4 || args.length  != 3) {
