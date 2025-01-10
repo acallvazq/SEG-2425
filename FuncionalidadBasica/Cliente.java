@@ -21,7 +21,7 @@ public class Cliente {
     
     //Clases
     public static void main (String[] args){
-		String host = "127.0.0.1";
+		String host = "192.168.10.10";
 		String raizAlmacenes;
 		int port = 3000;
         
